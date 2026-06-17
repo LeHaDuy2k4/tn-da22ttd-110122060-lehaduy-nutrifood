@@ -54,16 +54,19 @@ export const markAllAsRead = async (req, res) => {
 // 4. Xóa một thông báo cụ thể
 export const deleteNotification = async (req, res) => {
     try {
-        const notification = await Notification.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
-        
-        if (!notification) {
-            return res.status(404).json({ message: "Thông báo không tồn tại hoặc đã được xóa trước đó" });
+        const userId = req.user._id || req.user.id;
+        const notifId = req.params.id;
+
+        const deletedNotif = await Notification.findOneAndDelete({ _id: notifId, userId: userId });
+
+        if (!deletedNotif) {
+            return res.status(404).json({ success: false, message: "Không tìm thấy thông báo." });
         }
 
-        return res.status(200).json({ message: "Đã xóa thông báo thành công" });
+        return res.status(200).json({ success: true, message: "Đã xóa thông báo." });
     } catch (error) {
-        console.error("Lỗi khi xóa thông báo:", error.message);
-        return res.status(500).json({ message: "Lỗi khi xử lý yêu cầu xóa thông báo" });
+        console.error("Lỗi xóa thông báo:", error);
+        return res.status(500).json({ success: false, message: "Lỗi hệ thống." });
     }
 };
 
@@ -98,3 +101,5 @@ export const createNotification = async (req, res) => {
         return res.status(500).json({ message: "Lỗi hệ thống khi khởi tạo thông báo độc lập" });
     }
 };
+
+// Hàm xóa 1 thông báo

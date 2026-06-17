@@ -116,7 +116,7 @@ const MenuPage = () => {
   }, [categories]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
+    <div className="min-h-screen flex flex-col bg-slate-50 font-sans">
       <Header />
       
       <main className="flex-grow pt-28 pb-20">
@@ -124,13 +124,13 @@ const MenuPage = () => {
           
           {/* Tiêu đề trang (Gọn nhẹ & Thông báo kết quả tìm kiếm) */}
           <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Khám phá Thực đơn</h1>
+            <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Khám phá Thực đơn</h1>
             
             {/* 🎯 Hiển thị thông báo khi có từ khóa tìm kiếm từ Header */}
             {searchFromUrl && (
               <div className="flex items-center gap-2 bg-green-50 px-4 py-2 rounded-xl border border-green-100">
                 <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                <span className="text-sm font-bold text-green-700">
+                <span className="text-sm font-semibold text-green-700">
                   Kết quả cho: <span className="text-slate-900">"{searchFromUrl}"</span>
                 </span>
                 <button 
@@ -169,7 +169,7 @@ const MenuPage = () => {
             >
               <button
                 onClick={() => handleCategoryClick('all')}
-                className={`flex-shrink-0 whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-bold transition-all ${
+                className={`flex-shrink-0 whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-semibold transition-all ${
                   selectedCategory === 'all' 
                     ? 'bg-green-600 text-white shadow-md shadow-green-600/30' 
                     : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:border-slate-300'
@@ -182,7 +182,7 @@ const MenuPage = () => {
                 <button
                   key={cat._id}
                   onClick={() => handleCategoryClick(cat._id)}
-                  className={`flex-shrink-0 whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-bold transition-all ${
+                  className={`flex-shrink-0 whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-semibold transition-all ${
                     selectedCategory === cat._id 
                       ? 'bg-green-600 text-white shadow-md shadow-green-600/30' 
                       : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:border-slate-300'
@@ -225,7 +225,7 @@ const MenuPage = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-black text-slate-900 mb-1">Không tìm thấy món ăn nào</h3>
+              <h3 className="text-lg font-bold text-slate-900 mb-1">Không tìm thấy món ăn nào</h3>
               <p className="text-slate-500 font-medium text-sm">Thử chọn danh mục khác hoặc tìm kiếm với từ khóa khác nhé.</p>
             </div>
           ) : (
@@ -245,7 +245,7 @@ const MenuPage = () => {
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     />
                     {meal.totalNutrition?.calories && (
-                      <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-xl font-black text-xs text-orange-600 shadow-sm border border-white/50">
+                      <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-xl font-bold text-xs text-orange-600 shadow-sm border border-white/50">
                         {meal.totalNutrition.calories} kcal
                       </div>
                     )}
@@ -266,7 +266,7 @@ const MenuPage = () => {
 
                   {/* Khu vực Thông tin */}
                   <div className="p-5 flex flex-col flex-grow">
-                    <h3 className="font-black text-lg text-slate-900 line-clamp-1 mb-2 group-hover:text-green-600 transition-colors">
+                    <h3 className="font-bold text-lg text-slate-900 line-clamp-1 mb-2 group-hover:text-green-600 transition-colors">
                       {meal.name}
                     </h3>
                     
@@ -282,7 +282,7 @@ const MenuPage = () => {
                     </div>
 
                     {meal.totalNutrition && (
-                      <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold">
+                      <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-semibold">
                         <div className="text-red-500 bg-red-50 px-2.5 py-1 rounded-lg">P: {meal.totalNutrition.protein}g</div>
                         <div className="text-blue-500 bg-blue-50 px-2.5 py-1 rounded-lg">C: {meal.totalNutrition.carbs}g</div>
                         <div className="text-amber-500 bg-amber-50 px-2.5 py-1 rounded-lg">F: {meal.totalNutrition.fat}g</div>

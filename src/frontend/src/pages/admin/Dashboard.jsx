@@ -2,26 +2,27 @@ import React, { useState, useEffect } from 'react';
 import AdminLayout from '@/components/layouts/AdminLayout'; 
 import axios from 'axios';
 import { toast } from 'sonner'; 
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
 
 const Dashboard = () => {
   const [statsData, setStatsData] = useState({
     categories: 0,
     meals: 0,
     ingredients: 0,
-    users: 0
+    users: 0,
+    logs: 0,
+    favorites: 0
   });
   
-  // 🎯 State mới lưu dữ liệu biểu đồ thật
   const [chartData, setChartData] = useState([]);
+  const [pieData, setPieData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // 🎯 Hàm xử lý dữ liệu thật: Lọc và đếm User/Meal theo 6 tháng gần nhất
+  // 🎯 Hàm xử lý dữ liệu thật: Lọc và đếm theo 6 tháng gần nhất
   const generateChartData = (usersList, mealsList) => {
     const monthsData = [];
     const currentDate = new Date();
     
-    // Tạo khung 6 tháng gần nhất (VD: từ Tháng 1 -> Tháng 6)
     for (let i = 5; i >= 0; i--) {
       const d = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
       monthsData.push({
@@ -33,7 +34,6 @@ const Dashboard = () => {
       });
     }
 
-    // Đếm số lượng User đăng ký mỗi tháng (Dựa vào trường createdAt của MongoDB)
     usersList.forEach(user => {
       if (!user.createdAt) return;
       const createdDate = new Date(user.createdAt);
@@ -41,7 +41,6 @@ const Dashboard = () => {
       if (targetMonth) targetMonth.users += 1;
     });
 
-    // Đếm số lượng Món ăn được tạo mỗi tháng
     mealsList.forEach(meal => {
       if (!meal.createdAt) return;
       const createdDate = new Date(meal.createdAt);
@@ -59,29 +58,42 @@ const Dashboard = () => {
         const token = localStorage.getItem('nutrifood_token');
         const config = { headers: { Authorization: `Bearer ${token}` }, withCredentials: true };
 
-        const [catRes, mealRes, ingRes, userRes] = await Promise.allSettled([
+        const [catRes, mealRes, ingRes, userRes, logsRes, favRes] = await Promise.allSettled([
           axios.get('http://localhost:5001/api/categories', config),
           axios.get('http://localhost:5001/api/meals', config),
           axios.get('http://localhost:5001/api/ingredients', config),
-          axios.get('http://localhost:5001/api/users', config) 
+          axios.get('http://localhost:5001/api/users', config),
+          axios.get('http://localhost:5001/api/meal-logs/all', config), 
+          axios.get('http://localhost:5001/api/favorites/admin/all', config).catch(() => ({ data: [] })) 
         ]);
 
         const categoriesList = catRes.status === 'fulfilled' && catRes.value.data ? catRes.value.data : [];
         const mealsList = mealRes.status === 'fulfilled' && mealRes.value.data ? mealRes.value.data : [];
         const ingredientsList = ingRes.status === 'fulfilled' && ingRes.value.data ? ingRes.value.data : [];
         const usersList = userRes.status === 'fulfilled' && userRes.value.data ? userRes.value.data : [];
+        const logsList = logsRes.status === 'fulfilled' && logsRes.value.data ? logsRes.value.data : [];
+        const favsList = favRes.status === 'fulfilled' && favRes.value.data ? favRes.value.data : [];
 
         // Cập nhật tổng số lượng
         setStatsData({
           categories: categoriesList.length,
           meals: mealsList.length,
           ingredients: ingredientsList.length,
-          users: usersList.length
+          users: usersList.length,
+          logs: logsList.length,
+          favorites: favsList.length
         });
 
-        // 🎯 Cập nhật biểu đồ bằng dữ liệu thật
+        // Cập nhật biểu đồ đường/cột
         const realChartData = generateChartData(usersList, mealsList);
         setChartData(realChartData);
+
+        // Cập nhật biểu đồ tròn
+        setPieData([
+          { name: 'Món Ăn', value: mealsList.length },
+          { name: 'Nguyên Liệu', value: ingredientsList.length },
+          { name: 'Danh Mục', value: categoriesList.length }
+        ]);
 
       } catch (error) {
         console.error("Lỗi tải dữ liệu Dashboard:", error);
@@ -95,15 +107,17 @@ const Dashboard = () => {
   }, []);
 
   const stats = [
-    { name: 'Danh mục', count: statsData.categories, change: 'Đang hoạt động', icon: 'M4 6h16M4 10h16M4 14h16M4 18h16', color: 'text-blue-600 bg-blue-50' },
-    { name: 'Thực đơn & Món ăn', count: statsData.meals, change: 'Sẵn sàng gợi ý', icon: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253', color: 'text-green-600 bg-green-50' },
-    { name: 'Kho nguyên liệu', count: statsData.ingredients, change: 'Đã chuẩn hóa vi chất', icon: 'M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z', color: 'text-orange-600 bg-orange-50' },
     { name: 'Người dùng', count: statsData.users, change: 'Thành viên hệ thống', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z', color: 'text-purple-600 bg-purple-50' },
+    { name: 'Thực đơn & Món', count: statsData.meals, change: 'Sẵn sàng gợi ý', icon: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253', color: 'text-green-600 bg-green-50' },
+    { name: 'Nhật ký (Logs)', count: statsData.logs, change: 'Hoạt động ăn uống', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4', color: 'text-indigo-600 bg-indigo-50' },
+    { name: 'Món Yêu Thích', count: statsData.favorites, change: 'Tương tác người dùng', icon: 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z', color: 'text-rose-600 bg-rose-50' },
   ];
+
+  const PIE_COLORS = ['#3b82f6', '#f59e0b', '#10b981'];
 
   return (
     <AdminLayout>
-      <div className="space-y-8 animate-fadeIn pb-10">
+      <div className="space-y-8 animate-fadeIn pb-10 font-sans">
         
         {/* Lời chào đầu trang */}
         <div>
@@ -141,41 +155,80 @@ const Dashboard = () => {
           ))}
         </div>
 
-        {/* KHU VỰC BIỂU ĐỒ THỐNG KÊ (Dữ liệu thật) */}
-        <div className="bg-white border border-slate-100 rounded-3xl p-6 sm:p-8 shadow-sm">
-          <div className="mb-6">
-            <h2 className="text-lg font-bold text-slate-900">Tăng trưởng nền tảng</h2>
-            <p className="text-sm font-medium text-slate-500">Thống kê lượng người dùng mới và thực đơn cập nhật trong 6 tháng qua.</p>
-          </div>
+        {/* KHU VỰC 2 BIỂU ĐỒ TRÁI PHẢI */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           
+          {/* Biểu đồ Vùng (Area Chart) - Tăng trưởng Người Dùng */}
+          <div className="bg-white border border-slate-100 rounded-3xl p-6 sm:p-8 shadow-sm">
+            <div className="mb-6">
+              <h2 className="text-lg font-bold text-slate-900">Tăng trưởng Người dùng</h2>
+              <p className="text-sm font-medium text-slate-500 mt-1">Xu hướng đăng ký tài khoản 6 tháng qua.</p>
+            </div>
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12, fontWeight: 500 }} dy={10} />
+                  <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12, fontWeight: 500 }} />
+                  <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                  <Area type="monotone" dataKey="users" name="Người dùng mới" stroke="#8b5cf6" strokeWidth={3} fillOpacity={1} fill="url(#colorUsers)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Biểu đồ Tròn (Pie Chart) - Cấu trúc Nền tảng */}
+          <div className="bg-white border border-slate-100 rounded-3xl p-6 sm:p-8 shadow-sm">
+            <div className="mb-6">
+              <h2 className="text-lg font-bold text-slate-900">Cấu trúc Nền tảng</h2>
+              <p className="text-sm font-medium text-slate-500 mt-1">Tỷ trọng dữ liệu giữa Món ăn, Nguyên liệu và Danh mục.</p>
+            </div>
+            <div className="h-[300px] w-full flex items-center justify-center">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={90}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {pieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                  <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontWeight: 500, fontSize: '13px' }}/>
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+        </div>
+
+        {/* Biểu đồ Cột (Bar Chart) - Phát triển Thực đơn */}
+        <div className="bg-white border border-slate-100 rounded-3xl p-6 sm:p-8 shadow-sm mt-8">
+          <div className="mb-6">
+            <h2 className="text-lg font-bold text-slate-900">Phát triển Thực đơn</h2>
+            <p className="text-sm font-medium text-slate-500 mt-1">Số lượng món ăn mới được cập nhật vào hệ thống.</p>
+          </div>
           <div className="h-[350px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={chartData}
-                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-              >
+              <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis 
-                  dataKey="name" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fill: '#64748b', fontSize: 12, fontWeight: 500 }} 
-                  dy={10}
-                />
-                <YAxis 
-                  allowDecimals={false}
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fill: '#64748b', fontSize: 12, fontWeight: 500 }}
-                />
-                <Tooltip 
-                  cursor={{ fill: '#f8fafc' }}
-                  contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)', padding: '12px' }}
-                  labelStyle={{ fontWeight: 'bold', color: '#0f172a', marginBottom: '8px' }}
-                />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12, fontWeight: 500 }} dy={10} />
+                <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12, fontWeight: 500 }} />
+                <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', padding: '12px' }} />
                 <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px', fontSize: '14px', fontWeight: 500 }} />
-                <Bar dataKey="users" name="Người dùng mới" fill="#16a34a" radius={[6, 6, 0, 0]} barSize={24} />
-                <Bar dataKey="meals" name="Món ăn mới" fill="#3b82f6" radius={[6, 6, 0, 0]} barSize={24} />
+                <Bar dataKey="meals" name="Món ăn mới" fill="#16a34a" radius={[6, 6, 0, 0]} barSize={32} />
               </BarChart>
             </ResponsiveContainer>
           </div>

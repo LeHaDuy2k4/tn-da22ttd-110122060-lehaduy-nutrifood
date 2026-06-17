@@ -80,7 +80,7 @@ const MealDetailPage = () => {
     }
   };
 
-  // 3. XỬ LÝ LƯU VÀO NHẬT KÝ ĂN UỐNG (TỐI ƯU HÓA HIỆU NĂNG)
+  // 3. XỬ LÝ LƯU VÀO NHẬT KÝ ĂN UỐNG
   const handleLogMeal = async (e) => {
     e.preventDefault();
     if (!user) {
@@ -93,7 +93,6 @@ const MealDetailPage = () => {
       setIsSubmitting(true);
       const token = localStorage.getItem('nutrifood_token');
       
-      // 🎯 Tính toán tỷ lệ dựa trên số phần thực tế user nhập so với công thức gốc
       const servingsRatio = Number(logData.servingsConsumed) / (meal?.servings || 1);
       
       const payload = {
@@ -101,10 +100,9 @@ const MealDetailPage = () => {
         foodName: meal?.name || "Món ăn chưa xác định",
         mealType: logData.mealType,
         servingsConsumed: Number(logData.servingsConsumed),
-        consumedAt: new Date().toISOString(), // Đảm bảo lưu đúng Timezone
+        consumedAt: new Date().toISOString(),
         notes: logData.notes || "",
         
-        // 🎯 Tính toán sẵn Snapshot Dinh dưỡng gửi cho Backend để giảm tải DB
         nutritionSnapshot: {
           calories: Math.round((meal?.totalNutrition?.calories || 0) * servingsRatio),
           protein: parseFloat(((meal?.totalNutrition?.protein || 0) * servingsRatio).toFixed(1)),
@@ -120,7 +118,6 @@ const MealDetailPage = () => {
       toast.success(`Đã thêm ${meal?.name} vào nhật ký hôm nay! 🥗`);
       setIsLogModalOpen(false);
       
-      // Reset trạng thái form
       setLogData({
         mealType: 'Bữa trưa',
         servingsConsumed: 1,
@@ -136,7 +133,7 @@ const MealDetailPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col bg-slate-50" style={{ fontFamily: "'Times New Roman', serif" }}>
+      <div className="min-h-screen flex flex-col bg-slate-50 font-sans">
         <Header />
         <div className="flex-grow flex items-center justify-center pt-20">
           <div className="flex flex-col items-center space-y-4">
@@ -189,7 +186,7 @@ const MealDetailPage = () => {
 
                   {/* Nhãn giá tiền nổi trên ảnh */}
                   {meal.totalEstimatedCost && (
-                    <div className="absolute bottom-6 left-6 bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl font-black text-slate-900 shadow-lg">
+                    <div className="absolute bottom-6 left-6 bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl font-bold text-slate-900 shadow-lg text-xl">
                       ~ {meal.totalEstimatedCost.toLocaleString('vi-VN')} ₫
                     </div>
                   )}
@@ -201,12 +198,13 @@ const MealDetailPage = () => {
                 
                 {/* Tiêu đề & Thông tin cơ bản */}
                 <div className="mb-8">
-                  <h1 className="text-3xl lg:text-4xl font-black text-slate-900 leading-tight mb-4">{meal.name}</h1>
-                  <p className="text-slate-500 leading-relaxed mb-6">
+                  {/* 🎯 Tiêu đề món ăn */}
+                  <h1 className="text-2xl font-bold text-slate-900 leading-tight mb-4">{meal.name}</h1>
+                  <p className="text-slate-500 font-medium leading-relaxed mb-6">
                     {meal.description || "Một bữa ăn thơm ngon, đầy đủ dưỡng chất giúp bạn duy trì năng lượng cho một ngày làm việc hiệu quả."}
                   </p>
                   
-                  <div className="flex flex-wrap items-center gap-6 text-sm font-bold text-slate-700">
+                  <div className="flex flex-wrap items-center gap-6 text-sm font-semibold text-slate-700">
                     <div className="flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-xl">
                       <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                       Chuẩn bị: {meal.prepTime}p
@@ -221,11 +219,12 @@ const MealDetailPage = () => {
                 {/* Bảng Dinh dưỡng (Macronutrients) */}
                 {meal.totalNutrition && (
                   <div className="mb-8">
-                    <h3 className="text-lg font-black text-slate-900 mb-4 flex items-center gap-2">
+                    {/* 🎯 Tiêu đề bảng dinh dưỡng */}
+                    <h2 className="text-2xl font-bold text-slate-900 mb-4 flex items-center gap-2">
                       <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                       Thành phần dinh dưỡng (1 phần)
-                    </h3>
-                    <div className="grid grid-cols-4 gap-3">
+                    </h2>
+                   <div className="grid grid-cols-4 gap-3">
                       <div className="bg-orange-50 rounded-2xl p-4 text-center border border-orange-100/50">
                         <p className="text-xs font-bold text-orange-600/70 mb-1 uppercase tracking-wider">Calories</p>
                         <p className="text-xl font-black text-orange-600">{meal.totalNutrition.calories}</p>
@@ -250,7 +249,7 @@ const MealDetailPage = () => {
                 <div className="mt-auto pt-8 flex gap-4">
                   <button 
                     onClick={() => setIsLogModalOpen(true)}
-                    className="flex-1 bg-slate-900 text-white py-4 rounded-2xl font-black text-lg hover:bg-green-600 hover:shadow-xl hover:shadow-green-600/20 transition-all duration-300 transform hover:-translate-y-1 flex items-center justify-center gap-2"
+                    className="flex-1 bg-slate-900 text-white py-4 rounded-2xl font-bold text-lg hover:bg-green-600 hover:shadow-xl hover:shadow-green-600/20 transition-all duration-300 transform hover:-translate-y-1 flex items-center justify-center gap-2"
                   >
                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
                     Ghi vào Nhật ký
@@ -266,10 +265,11 @@ const MealDetailPage = () => {
             
             {/* Cột Trái: Nguyên liệu */}
             <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-100 h-fit">
-              <h3 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-2">
+              {/* 🎯 Tiêu đề */}
+              <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-2">
                 <span className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">🥬</span>
                 Nguyên liệu
-              </h3>
+              </h2>
               <ul className="space-y-4">
                 {meal.ingredients?.map((ing, idx) => (
                   <li key={idx} className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
@@ -277,7 +277,7 @@ const MealDetailPage = () => {
                       <div className="w-2 h-2 rounded-full bg-green-400"></div>
                       <span className="font-semibold text-slate-700">{ing.ingredientId?.name || 'Nguyên liệu'}</span>
                     </div>
-                    <span className="font-bold text-slate-900 bg-slate-100 px-3 py-1 rounded-lg text-sm">
+                    <span className="font-semibold text-slate-900 bg-slate-100 px-3 py-1 rounded-lg text-sm">
                       {ing.quantity} {ing.unit}
                     </span>
                   </li>
@@ -287,14 +287,15 @@ const MealDetailPage = () => {
 
             {/* Cột Phải: Hướng dẫn cách làm (Chiếm 2/3) */}
             <div className="lg:col-span-2 bg-white rounded-[2rem] p-8 shadow-sm border border-slate-100">
-              <h3 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-2">
+              {/* 🎯 Tiêu đề */}
+              <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-2">
                 <span className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">🍳</span>
                 Hướng dẫn thực hiện
-              </h3>
+              </h2>
               <div className="space-y-6">
                 {meal.instructions?.map((step, idx) => (
                   <div key={idx} className="flex gap-4">
-                    <div className="shrink-0 w-10 h-10 rounded-xl bg-slate-900 text-white font-black flex items-center justify-center">
+                    <div className="shrink-0 w-10 h-10 rounded-xl bg-slate-900 text-white font-bold flex items-center justify-center">
                       {idx + 1}
                     </div>
                     <div className="pt-2">
@@ -303,7 +304,7 @@ const MealDetailPage = () => {
                   </div>
                 ))}
                 {(!meal.instructions || meal.instructions.length === 0) && (
-                  <p className="text-slate-500 italic">Hướng dẫn cách làm đang được cập nhật...</p>
+                  <p className="text-slate-500 italic font-medium">Hướng dẫn cách làm đang được cập nhật...</p>
                 )}
               </div>
             </div>
@@ -322,7 +323,8 @@ const MealDetailPage = () => {
           <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden animate-slideUp">
             
             <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-              <h3 className="text-xl font-black text-slate-900">Ghi nhật ký ăn uống</h3>
+              {/* 🎯 Tiêu đề Modal */}
+              <h2 className="text-2xl font-bold text-slate-900">Ghi nhật ký ăn uống</h2>
               <button onClick={() => setIsLogModalOpen(false)} className="text-slate-400 hover:text-slate-700 bg-white p-2 rounded-xl shadow-sm hover:bg-slate-100 transition-all">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
@@ -331,19 +333,19 @@ const MealDetailPage = () => {
             <form onSubmit={handleLogMeal} className="p-6 space-y-5">
               {/* Hiển thị tên món (Readonly) */}
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">Món ăn</label>
-                <div className="w-full bg-slate-100 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-500">
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Món ăn</label>
+                <div className="w-full bg-slate-100 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-500">
                   {meal.name}
                 </div>
               </div>
 
               {/* Bữa ăn */}
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">Bạn ăn vào bữa nào? <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Bạn ăn vào bữa nào? <span className="text-red-500">*</span></label>
                 <select 
                   value={logData.mealType}
                   onChange={(e) => setLogData({ ...logData, mealType: e.target.value })}
-                  className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none cursor-pointer"
+                  className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none cursor-pointer"
                 >
                   <option value="Bữa sáng">Bữa sáng</option>
                   <option value="Bữa trưa">Bữa trưa</option>
@@ -354,7 +356,7 @@ const MealDetailPage = () => {
 
               {/* Khẩu phần */}
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">Số khẩu phần (phần) <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Số khẩu phần (phần) <span className="text-red-500">*</span></label>
                 <div className="flex items-center gap-3">
                   <input 
                     type="number"
@@ -363,7 +365,7 @@ const MealDetailPage = () => {
                     required
                     value={logData.servingsConsumed}
                     onChange={(e) => setLogData({ ...logData, servingsConsumed: e.target.value })}
-                    className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none"
+                    className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none"
                   />
                   <span className="text-xs text-slate-400 font-medium">x {meal.totalNutrition?.calories || 0} kcal</span>
                 </div>
@@ -374,7 +376,7 @@ const MealDetailPage = () => {
                 <button 
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3.5 bg-green-600 text-white rounded-xl font-black hover:bg-green-700 shadow-lg shadow-green-600/30 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="w-full py-3.5 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 shadow-lg shadow-green-600/30 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   {isSubmitting && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
                   {isSubmitting ? 'Đang lưu...' : 'Xác nhận ghi nhật ký'}

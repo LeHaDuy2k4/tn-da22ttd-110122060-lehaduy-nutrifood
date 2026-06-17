@@ -19,7 +19,7 @@ const NotificationBell = () => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    // 1. Fetch dữ liệu thông báo
+    // 1. Fetch dữ liệu thông báo (Đã lồng ghép BỘ LỌC ẨN LỖI 503)
     const fetchNotifications = async () => {
         try {
             const token = localStorage.getItem('nutrifood_token');
@@ -30,15 +30,22 @@ const NotificationBell = () => {
             });
             
             if (res.data) {
-                setNotifications(res.data.notifications);
-                setUnreadCount(res.data.unreadCount);
+                // 🎯 BỘ LỌC FRONTEND: Ẩn các thông báo chứa từ khóa "lỗi 503" hoặc "ngẫu nhiên"
+                const filteredNotifs = res.data.notifications.filter(
+                    notif => !notif.title.toLowerCase().includes('ngẫu nhiên') && !notif.content.toLowerCase().includes('503')
+                );
+
+                const newUnreadCount = filteredNotifs.filter(n => !n.isRead).length;
+
+                setNotifications(filteredNotifs);
+                setUnreadCount(newUnreadCount);
             }
         } catch (error) {
             console.error("Lỗi lấy thông báo:", error);
         }
     };
 
-    // 2. Chạy lần đầu và thiết lập tự động cập nhật mỗi 10 giây (Polling)
+    // 2. Chạy lần đầu và thiết lập tự động cập nhật mỗi 10 giây
     useEffect(() => {
         fetchNotifications();
         const interval = setInterval(fetchNotifications, 10000); 
@@ -54,7 +61,6 @@ const NotificationBell = () => {
                 headers: { Authorization: `Bearer ${token}` }
             });
             
-            // Cập nhật State nội bộ ngay lập tức để UI mượt mà
             setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
             setUnreadCount(prev => Math.max(0, prev - 1));
         } catch (error) {
@@ -73,13 +79,30 @@ const NotificationBell = () => {
             
             setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
             setUnreadCount(0);
-            toast.success("Đã đánh dấu đọc tất cả");
         } catch (error) {
             console.error("Lỗi read-all:", error);
         }
     };
 
-    // 5. Hàm định dạng thời gian đẹp mắt
+    // 5. 🎯 HÀM XÓA THÔNG BÁO
+    const handleDelete = async (e, id) => {
+        e.stopPropagation(); // Ngăn chặn sự kiện click lan ra ngoài thẻ cha
+        try {
+            const token = localStorage.getItem('nutrifood_token');
+            await axios.delete(`http://localhost:5001/api/notifications/${id}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            
+            // Xóa thông báo khỏi giao diện ngay lập tức
+            setNotifications(prev => prev.filter(n => n._id !== id));
+            toast.success("Đã xóa thông báo.");
+        } catch (error) {
+            console.error("Lỗi xóa thông báo:", error);
+            toast.error("Không thể xóa thông báo lúc này.");
+        }
+    };
+
+    // 6. Hàm định dạng thời gian
     const formatTime = (dateString) => {
         const date = new Date(dateString);
         return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' - ' + date.toLocaleDateString('vi-VN');
@@ -102,7 +125,7 @@ const NotificationBell = () => {
                 
                 {/* Badge Số lượng đỏ */}
                 {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white shadow-sm">
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-semibold flex items-center justify-center rounded-full border-2 border-white shadow-sm">
                         {unreadCount > 99 ? '99+' : unreadCount}
                     </span>
                 )}
@@ -114,11 +137,11 @@ const NotificationBell = () => {
                     
                     {/* Header Menu */}
                     <div className="px-5 py-4 border-b border-slate-100/80 bg-slate-50/50 flex justify-between items-center">
-                        <h4 className="font-bold text-slate-800 text-base">Thông báo</h4>
+                        <h4 className="font-semibold text-slate-800 text-base">Thông báo</h4>
                         {unreadCount > 0 && (
                             <button 
                                 onClick={handleReadAll}
-                                className="text-xs font-semibold text-green-600 hover:text-green-700 hover:bg-green-50 px-2.5 py-1.5 rounded-lg transition-colors"
+                                className="text-xs font-medium text-green-600 hover:text-green-700 hover:bg-green-50 px-2.5 py-1.5 rounded-lg transition-colors"
                             >
                                 Đánh dấu đọc tất cả
                             </button>
@@ -139,30 +162,29 @@ const NotificationBell = () => {
                                 <div 
                                     key={notif._id} 
                                     onClick={() => handleRead(notif._id, notif.isRead)}
-                                    className={`p-4 border-b border-slate-50/80 cursor-pointer transition-all duration-200 group flex gap-3.5 ${
+                                    className={`p-4 border-b border-slate-50/80 cursor-pointer transition-all duration-200 group flex gap-3.5 items-start ${
                                         !notif.isRead 
                                             ? 'bg-green-50/40 hover:bg-green-50/80' 
                                             : 'bg-white hover:bg-slate-50'
                                     }`}
                                 >
-                                    {/* 🎯 NÂNG CẤP ĐỔI MÀU VÀ ICON THEO PHÂN LOẠI */}
-                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${
                                         notif.type === 'AI_COMPLETED' ? 'bg-gradient-to-br from-green-400 to-emerald-600 text-white shadow-md' :
                                         notif.type === 'REMINDER' ? 'bg-amber-100 text-amber-600 shadow-sm' :
-                                        'bg-blue-100 text-blue-600' // Cho type SYSTEM
+                                        'bg-blue-100 text-blue-600'
                                     }`}>
                                         {notif.type === 'AI_COMPLETED' ? (
                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                                         ) : notif.type === 'REMINDER' ? (
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> // Icon đồng hồ
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                         ) : (
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> // Icon chữ (i)
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                         )}
                                     </div>
 
                                     {/* Nội dung */}
                                     <div className="flex-1 min-w-0">
-                                        <p className={`text-sm mb-1 ${!notif.isRead ? 'font-bold text-slate-900' : 'font-semibold text-slate-700'}`}>
+                                        <p className={`text-sm mb-1 ${!notif.isRead ? 'font-semibold text-slate-900' : 'font-medium text-slate-700'}`}>
                                             {notif.title}
                                         </p>
                                         <p className={`text-xs leading-relaxed line-clamp-2 ${!notif.isRead ? 'text-slate-600' : 'text-slate-500'}`}>
@@ -173,9 +195,19 @@ const NotificationBell = () => {
                                         </p>
                                     </div>
 
-                                    {/* Dấu chấm xanh báo chưa đọc */}
-                                    {!notif.isRead && (
-                                        <div className="w-2.5 h-2.5 bg-green-500 rounded-full mt-1.5 shrink-0 shadow-sm shadow-green-500/50"></div>
+                                    {/* Khu vực bên phải: Dấu chấm xanh (chưa đọc) HOẶC Nút Xóa thùng rác (đã đọc) */}
+                                    {!notif.isRead ? (
+                                        <div className="w-2.5 h-2.5 bg-green-500 rounded-full mt-2 shrink-0 shadow-sm shadow-green-500/50"></div>
+                                    ) : (
+                                        <button 
+                                            onClick={(e) => handleDelete(e, notif._id)}
+                                            className="opacity-0 group-hover:opacity-100 p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all shrink-0"
+                                            title="Xóa thông báo"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
                                     )}
                                 </div>
                             ))

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { SigninForm } from "@/components/auth/signin-form"; // Điều chỉnh đường dẫn của bạn
+import { SigninForm } from "@/components/auth/signin-form";
 import { useAuthStore } from '@/stores/useAuthStores';
 
 export default function SignInPage() {
@@ -17,6 +17,8 @@ export default function SignInPage() {
   };
 
   return (
-    <SigninForm signInFn={handleLoginSubmit} isLoading={loading} />
+    <div className="font-sans">
+      <SigninForm signInFn={handleLoginSubmit} isLoading={loading} />
+    </div>
   );
 }

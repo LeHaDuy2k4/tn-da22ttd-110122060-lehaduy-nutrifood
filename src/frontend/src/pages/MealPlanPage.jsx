@@ -69,11 +69,20 @@ const MealPlanPage = () => {
     }
   };
 
+  // 🎯 HÀM GHI NHẬN 1 CHẠM (ĐÃ FIX LỖI THỜI GIAN)
   const handleOneTouchLog = async (mealObj, mealType, planDate) => {
     try {
       const today = new Date();
       today.setHours(23, 59, 59, 999);
-      const mealDate = new Date(planDate);
+      
+      // Lấy NGÀY từ lộ trình 
+      const mealDate = new Date(planDate); 
+      
+      // Lấy GIỜ PHÚT GIÂY thực tế
+      const now = new Date();
+      
+      // Ghép chúng lại để ra thời gian tuyệt đối chính xác
+      mealDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
       
       // Chặn người dùng ghi nhận món ăn của tương lai
       if (mealDate > today) {
@@ -103,7 +112,7 @@ const MealPlanPage = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      // Cập nhật mảng LocalStorage nếu Backend trả về thành công (201)
+      // Cập nhật mảng LocalStorage
       const uniqueMealKey = `${planDate}-${mealType}`;
       const newLoggedMeals = [...loggedMeals, uniqueMealKey];
       setLoggedMeals(newLoggedMeals);
@@ -127,7 +136,7 @@ const MealPlanPage = () => {
       'bữa phụ': 'bg-slate-100 text-slate-700'
     };
     const style = badges[type?.toLowerCase()] || 'bg-slate-100 text-slate-700';
-    return <span className={`${style} px-2.5 py-1 rounded-lg text-xs font-semibold uppercase tracking-wider`}>{type || 'Khác'}</span>;
+    return <span className={`${style} px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider`}>{type || 'Khác'}</span>;
   };
 
   return (
@@ -138,15 +147,15 @@ const MealPlanPage = () => {
           
           <div className="mb-8 text-center md:text-left flex flex-col md:flex-row justify-between items-center gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-2">Lộ Trình Tuần Dinh Dưỡng</h1>
+              {/* 🎯 Tiêu đề chính cập nhật thành text-3xl font-bold */}
+              <h1 className="text-3xl font-bold text-slate-900 mb-2">Lộ Trình Tuần Dinh Dưỡng</h1>
               <p className="text-slate-500 font-medium">Hệ thống AI phân tích TDEE và đề xuất cấu trúc bữa ăn trọn vẹn 7 ngày.</p>
             </div>
 
-            {/* 🎯 ĐÃ THÊM: Cụm Nút Điều Hướng */}
             <div className="flex flex-col sm:flex-row gap-3">
               <button 
-                onClick={() => navigate('/meal-logs')} 
-                className="bg-white border border-slate-200 text-slate-700 font-semibold px-6 py-3 rounded-xl hover:bg-slate-50 transition shadow-sm flex items-center justify-center gap-2 text-sm"
+                onClick={() => navigate('/meal-log')} 
+                className="bg-white border border-slate-200 text-slate-800 font-bold px-6 py-3 rounded-xl hover:bg-slate-50 transition shadow-sm flex items-center justify-center gap-2 text-sm"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
                 Nhật ký thực đơn
@@ -155,7 +164,7 @@ const MealPlanPage = () => {
               <button 
                 onClick={handleGeneratePlan}
                 disabled={isGenerating}
-                className="bg-green-600 text-white font-semibold px-6 py-3 rounded-xl hover:bg-green-700 transition shadow-sm disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
+                className="bg-green-600 text-white font-bold px-6 py-3 rounded-xl hover:bg-green-700 transition shadow-sm disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
               >
                 {isGenerating ? (
                   <>
@@ -176,7 +185,8 @@ const MealPlanPage = () => {
               <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-6 shadow-sm border border-green-100">
                 <span className="text-4xl">🤖</span>
               </div>
-              <h2 className="text-xl font-bold text-green-800 mb-2">Chưa có lộ trình tuần này</h2>
+              {/* 🎯 Tiêu đề phụ text-2xl font-bold */}
+              <h2 className="text-2xl font-bold text-green-800 mb-2">Chưa có lộ trình tuần này</h2>
               <p className="text-slate-600 font-medium text-sm max-w-sm mb-6 leading-relaxed">
                 Hãy nhấn nút "Khởi tạo" ở góc trên để Generative AI bắt đầu thiết kế thực đơn chuẩn khoa học cho riêng bạn.
               </p>
@@ -187,13 +197,13 @@ const MealPlanPage = () => {
               <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-lg text-xs font-semibold uppercase tracking-wider">Đang áp dụng</span>
-                    <p className="text-slate-800 font-bold text-lg">
+                    <span className="bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider">Đang áp dụng</span>
+                    <p className="text-slate-900 font-bold text-lg">
                       {new Date(mealPlan.startDate).toLocaleDateString('vi-VN')} - {new Date(mealPlan.endDate).toLocaleDateString('vi-VN')}
                     </p>
                   </div>
                   <p className="text-sm font-medium text-slate-500">
-                    Mục tiêu năng lượng AI phân bổ: <span className="font-semibold text-slate-800">{mealPlan.totalDailyCalories} kcal/ngày</span>
+                    Mục tiêu năng lượng AI phân bổ: <span className="font-bold text-slate-800">{mealPlan.totalDailyCalories} kcal/ngày</span>
                   </p>
                 </div>
               </div>
@@ -202,8 +212,8 @@ const MealPlanPage = () => {
                 {mealPlan.dailyMenus?.map((day, idx) => (
                   <div key={idx} className="bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col overflow-hidden">
                     <div className="bg-slate-50 border-b border-slate-100 px-4 py-3 flex justify-between items-center">
-                      <h3 className="font-bold text-slate-800 tracking-tight">Ngày {day.dayNumber}</h3>
-                      {day.date && <p className="text-xs font-medium text-slate-500">{new Date(day.date).toLocaleDateString('vi-VN')}</p>}
+                      <h3 className="text-lg font-bold text-slate-900">Ngày {day.dayNumber}</h3>
+                      {day.date && <p className="text-xs font-bold text-slate-500">{new Date(day.date).toLocaleDateString('vi-VN')}</p>}
                     </div>
                     
                     <div className="p-4 space-y-4 flex-grow">
@@ -219,7 +229,7 @@ const MealPlanPage = () => {
                               <div className="mb-1">
                                 {renderMealTypeBadge(mealObj.mealType)}
                               </div>
-                              <p className="font-semibold text-slate-800 text-sm">{mealInfo?.name || "Món ăn bị lỗi"}</p>
+                              <p className="font-bold text-slate-900 text-sm">{mealInfo?.name || "Món ăn bị lỗi"}</p>
                               <p className="text-xs font-medium text-slate-500 mt-1">
                                 {mealInfo?.totalNutrition?.calories || 0} kcal
                               </p>
@@ -237,7 +247,7 @@ const MealPlanPage = () => {
                               title={isLogged ? "Đã ghi nhận" : "Ghi nhận vào nhật ký"}
                             >
                               {isLogged ? (
-                                <span className="text-xs font-semibold">✓ Đã ăn</span>
+                                <span className="text-xs font-bold">✓ Đã ăn</span>
                               ) : (
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path></svg>
                               )}

@@ -52,11 +52,12 @@ export function SignupForm({ signUpFn, isLoading }) {
           </Link>
         </div>
 
+        {/* Tiêu đề 🎯 text-2xl font-bold */}
         <div className="mb-8 text-center">
-          <h2 className="text-3xl font-extrabold !text-slate-900 mb-3 tracking-tight">
-            Tạo Tài Khoản <span className="!text-green-600">NutriFood</span>
+          <h2 className="text-2xl font-bold text-slate-900 mb-3">
+            Tạo Tài Khoản <span className="text-green-600">NutriFood</span>
           </h2>
-          <p className="text-slate-500 text-sm leading-relaxed">
+          <p className="text-slate-500 text-sm leading-relaxed font-medium">
             Đăng ký nhanh chóng để bắt đầu hành trình dinh dưỡng cá nhân hóa.
           </p>
         </div>
@@ -68,11 +69,11 @@ export function SignupForm({ signUpFn, isLoading }) {
             
             {/* Username */}
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Tên đăng nhập</label>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Tên đăng nhập</label>
               <input 
                 type="text" 
                 {...register("username")} 
-                className={`block w-full px-4 py-3 bg-white/50 border rounded-xl focus:ring-2 outline-none transition text-sm ${errors.username ? 'border-red-400 focus:ring-red-400' : 'border-slate-200 focus:ring-green-500'}`} 
+                className={`block w-full px-4 py-3 bg-white/50 border rounded-xl focus:ring-2 outline-none transition text-sm font-medium ${errors.username ? 'border-red-400 focus:ring-red-400' : 'border-slate-200 focus:ring-green-500'}`} 
                 placeholder="haduy2026" 
               />
               {errors.username && <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.username.message}</p>}
@@ -81,21 +82,21 @@ export function SignupForm({ signUpFn, isLoading }) {
             {/* Họ và Tên (Grid 2 cột) */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Họ</label>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Họ</label>
                 <input 
                   type="text" 
                   {...register("firstName")} 
-                  className={`block w-full px-4 py-3 bg-white/50 border rounded-xl focus:ring-2 outline-none transition text-sm ${errors.firstName ? 'border-red-400 focus:ring-red-400' : 'border-slate-200 focus:ring-green-500'}`} 
+                  className={`block w-full px-4 py-3 bg-white/50 border rounded-xl focus:ring-2 outline-none transition text-sm font-medium ${errors.firstName ? 'border-red-400 focus:ring-red-400' : 'border-slate-200 focus:ring-green-500'}`} 
                   placeholder="Lê" 
                 />
                 {errors.firstName && <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.firstName.message}</p>}
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Tên</label>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Tên</label>
                 <input 
                   type="text" 
                   {...register("lastName")} 
-                  className={`block w-full px-4 py-3 bg-white/50 border rounded-xl focus:ring-2 outline-none transition text-sm ${errors.lastName ? 'border-red-400 focus:ring-red-400' : 'border-slate-200 focus:ring-green-500'}`} 
+                  className={`block w-full px-4 py-3 bg-white/50 border rounded-xl focus:ring-2 outline-none transition text-sm font-medium ${errors.lastName ? 'border-red-400 focus:ring-red-400' : 'border-slate-200 focus:ring-green-500'}`} 
                   placeholder="Hà Duy" 
                 />
                 {errors.lastName && <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.lastName.message}</p>}
@@ -104,11 +105,11 @@ export function SignupForm({ signUpFn, isLoading }) {
 
             {/* Email */}
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Email</label>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Email</label>
               <input 
                 type="email" 
                 {...register("email")} 
-                className={`block w-full px-4 py-3 bg-white/50 border rounded-xl focus:ring-2 outline-none transition text-sm ${errors.email ? 'border-red-400 focus:ring-red-400' : 'border-slate-200 focus:ring-green-500'}`} 
+                className={`block w-full px-4 py-3 bg-white/50 border rounded-xl focus:ring-2 outline-none transition text-sm font-medium ${errors.email ? 'border-red-400 focus:ring-red-400' : 'border-slate-200 focus:ring-green-500'}`} 
                 placeholder="duy.le@example.com" 
               />
               {errors.email && <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.email.message}</p>}
@@ -116,11 +117,11 @@ export function SignupForm({ signUpFn, isLoading }) {
             
             {/* Password */}
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Mật khẩu</label>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Mật khẩu</label>
               <input 
                 type="password" 
                 {...register("password")} 
-                className={`block w-full px-4 py-3 bg-white/50 border rounded-xl focus:ring-2 outline-none transition text-sm ${errors.password ? 'border-red-400 focus:ring-red-400' : 'border-slate-200 focus:ring-green-500'}`} 
+                className={`block w-full px-4 py-3 bg-white/50 border rounded-xl focus:ring-2 outline-none transition text-sm font-medium ${errors.password ? 'border-red-400 focus:ring-red-400' : 'border-slate-200 focus:ring-green-500'}`} 
                 placeholder="••••••••" 
               />
               {errors.password && <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.password.message}</p>}
@@ -128,12 +129,12 @@ export function SignupForm({ signUpFn, isLoading }) {
 
           </div>
 
-          {/* Nút Submit lắng nghe isLoading từ Zustand */}
+          {/* Nút Submit */}
           <div className="pt-2">
             <button
               type="submit"
               disabled={isLoading} 
-              className="w-full py-3.5 rounded-xl text-white font-bold text-base bg-green-600 hover:bg-green-700 transition-all duration-300 shadow-[0_8px_20px_rgba(22,163,74,0.25)] hover:shadow-[0_10px_25px_rgba(22,163,74,0.35)] hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0"
+              className="w-full py-3.5 rounded-xl text-white font-semibold text-base bg-green-600 hover:bg-green-700 transition-all duration-300 shadow-[0_8px_20px_rgba(22,163,74,0.25)] hover:shadow-[0_10px_25px_rgba(22,163,74,0.35)] hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0"
             >
               {isLoading ? 'Đang xử lý...' : 'Đăng Ký Ngay'}
             </button>
@@ -147,7 +148,7 @@ export function SignupForm({ signUpFn, isLoading }) {
             Đã có tài khoản?{' '}
             <Link 
               to="/signin" 
-              className="font-bold !text-green-600 hover:text-green-700 transition duration-300 underline underline-offset-4"
+              className="font-semibold text-green-600 hover:text-green-700 transition duration-300 underline underline-offset-4"
             >
               Đăng nhập ngay
             </Link>

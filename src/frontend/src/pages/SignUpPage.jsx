@@ -1,7 +1,7 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom'; // Import để chuyển hướng trang
+import { useNavigate } from 'react-router-dom';
 import { SignupForm } from "@/components/auth/signup-form";
-import { useAuthStore } from '@/stores/useAuthStores'; // Đường dẫn tới file Zustand Store của bạn
+import { useAuthStore } from '@/stores/useAuthStores';
 
 const SignUpPage = () => {
   const navigate = useNavigate();
@@ -24,7 +24,9 @@ const SignUpPage = () => {
 
   return (
     // Truyền hàm và trạng thái loading xuống component con qua props
-    <SignupForm signUpFn={handleRegisterSubmit} isLoading={loading} />
+    <div className="font-sans">
+      <SignupForm signUpFn={handleRegisterSubmit} isLoading={loading} />
+    </div>
   );
 };
 

@@ -36,11 +36,17 @@ const RecommendationsPage = () => {
           axios.get('http://localhost:5001/api/meal-logs/my-logs', { headers }) 
         ]);
 
-        // Lấy dữ liệu an toàn
-        const userData = profileRes.status === 'fulfilled' ? profileRes.value?.data?.user : null;
-        const allMeals = mealsRes.status === 'fulfilled' ? mealsRes.value?.data : [];
-        const myFavorites = favRes.status === 'fulfilled' ? favRes.value?.data : [];
-        const myLogs = logsRes.status === 'fulfilled' ? logsRes.value?.data : [];
+        // Lấy dữ liệu an toàn, tự động bóc tách Object nếu cần
+        const userData = profileRes.status === 'fulfilled' ? (profileRes.value?.data?.user || profileRes.value?.data) : null;
+        
+        const rawMeals = mealsRes.status === 'fulfilled' ? mealsRes.value?.data : [];
+        const allMeals = Array.isArray(rawMeals) ? rawMeals : (rawMeals?.data || []);
+
+        const rawFavs = favRes.status === 'fulfilled' ? favRes.value?.data : [];
+        const myFavorites = Array.isArray(rawFavs) ? rawFavs : (rawFavs?.data || []);
+
+        const rawLogs = logsRes.status === 'fulfilled' ? logsRes.value?.data : [];
+        const myLogs = Array.isArray(rawLogs) ? rawLogs : (rawLogs?.data || []);
 
         if (!userData) throw new Error("Không lấy được profile");
         setProfile(userData);
@@ -55,14 +61,11 @@ const RecommendationsPage = () => {
           let matchReasons = []; 
 
           // --- PHẦN 1: DỮ LIỆU HÀNH VI (BEHAVIORAL DATA) ---
-          
-          // Phản hồi rõ ràng (Explicit Feedback): Đã thả tim
           if (favoriteMealIds.includes(meal._id)) {
             score += 8;
             matchReasons.push("Món yêu thích của bạn");
           }
 
-          // Phản hồi ngầm (Implicit Feedback): Đã từng ăn (Có trong nhật ký)
           const mealNameLower = meal.name?.toLowerCase() || "";
           if (loggedFoodNames.includes(mealNameLower)) {
             score += 3;
@@ -70,19 +73,16 @@ const RecommendationsPage = () => {
           }
 
           // --- PHẦN 2: DỮ LIỆU NỘI DUNG (CONTENT-BASED) ---
-
-          // A. Ngân sách
           if (userData.budgetPreference > 0 && meal.totalEstimatedCost) {
             const budgetPerMeal = userData.budgetPreference / 3;
             if (meal.totalEstimatedCost <= budgetPerMeal) {
               score += 2;
               matchReasons.push("Tiết kiệm");
             } else {
-              score -= 5; // Trừ điểm nếu vượt quá ngân sách 1 bữa
+              score -= 5;
             }
           }
 
-          // B. Mục tiêu sức khỏe & BMI
           const calories = meal.totalNutrition?.calories || 0;
           const protein = meal.totalNutrition?.protein || 0;
           
@@ -91,7 +91,7 @@ const RecommendationsPage = () => {
               score += 3;
               matchReasons.push("Ít Calo, giảm mỡ");
             } else { 
-              score -= 3; // Đang giảm cân mà calo cao thì trừ điểm nặng
+              score -= 3; 
             } 
           } 
           else if (userData.healthGoal === 'Tăng cân khoa học' || userData.bmi < 18.5) {
@@ -114,7 +114,6 @@ const RecommendationsPage = () => {
             }
           }
 
-          // C. Sở thích (Interests)
           if (userData.interests && userData.interests.length > 0) {
             const mealDesc = `${meal.name} ${meal.description}`.toLowerCase();
             let interestMatched = false;
@@ -134,13 +133,11 @@ const RecommendationsPage = () => {
         // 3. Xử lý hiển thị (Sắp xếp theo điểm giảm dần)
         scoredMeals.sort((a, b) => b.score - a.score);
 
-        // Lọc ra các món có điểm > 0 và loại bỏ lý do trùng lặp để UI đẹp hơn
         const topRecommendations = scoredMeals.filter(m => m.score > 0).map(m => ({
           ...m,
-          matchReasons: [...new Set(m.matchReasons)].slice(0, 2) // Chỉ lấy tối đa 2 lý do đặc sắc nhất
+          matchReasons: [...new Set(m.matchReasons)].slice(0, 2)
         })).slice(0, 8);
 
-        // Nếu hệ thống chấm điểm quá khắt khe và không ra món nào, lấy 8 món đầu tiên làm fallback
         setRecommendedMeals(topRecommendations.length > 0 ? topRecommendations : allMeals.slice(0, 8));
 
       } catch (error) {
@@ -156,7 +153,7 @@ const RecommendationsPage = () => {
   }, [user, navigate]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
+    <div className="min-h-screen flex flex-col bg-slate-50 font-sans">
       <Header />
 
       <main className="flex-grow pt-24 pb-20">
@@ -170,8 +167,9 @@ const RecommendationsPage = () => {
             <span className="inline-block py-1 px-3 rounded-full bg-white/10 border border-white/20 text-green-300 text-sm font-bold tracking-wider mb-4">
               ✨ ADVANCED HYBRID RECOMMENDATION
             </span>
-            <h1 className="text-4xl md:text-5xl font-black mb-4">Thực Đơn Dành Riêng Cho Bạn</h1>
-            <p className="text-green-100 text-lg max-w-2xl mx-auto">
+            {/* 🎯 Tiêu đề chính cập nhật thành text-2xl (mở rộng sm:text-3xl) font-bold */}
+            <h1 className="text-2xl sm:text-3xl font-bold mb-4 text-white">Thực Đơn Dành Riêng Cho Bạn</h1>
+            <p className="text-green-100 text-lg max-w-2xl mx-auto font-medium">
               Hệ thống kết hợp phân tích <span className="font-bold text-white">Chỉ số Cơ thể</span> và <span className="font-bold text-white">Thói quen ăn uống</span> của bạn để đưa ra những lựa chọn hoàn hảo nhất.
             </p>
           </div>
@@ -202,7 +200,7 @@ const RecommendationsPage = () => {
                   <span className="font-bold text-green-600">{profile.interests.join(', ')}</span>
                 </div>
               )}
-              <Link to="/profile" className="ml-auto text-sm text-green-600 hover:underline font-bold bg-green-50 px-4 py-2 rounded-xl">
+              <Link to="/profile" className="ml-auto text-sm text-green-600 hover:underline font-bold bg-green-50 px-4 py-2 rounded-xl transition-colors">
                 Chỉnh sửa hồ sơ
               </Link>
             </div>
@@ -221,7 +219,8 @@ const RecommendationsPage = () => {
             </div>
           ) : recommendedMeals.length === 0 ? (
             <div className="text-center py-20">
-              <h3 className="text-xl font-bold text-slate-700">Chưa tìm thấy món ăn phù hợp. Hãy cập nhật lại hồ sơ nhé!</h3>
+              {/* 🎯 Tiêu đề thông báo cập nhật text-2xl font-bold */}
+              <h3 className="text-2xl font-bold text-slate-700">Chưa tìm thấy món ăn phù hợp. Hãy cập nhật lại hồ sơ nhé!</h3>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -234,7 +233,7 @@ const RecommendationsPage = () => {
                   {/* Badge Báo cáo Lý do đề xuất */}
                   <div className="absolute z-10 top-4 right-4 flex flex-col gap-1.5 items-end">
                     {meal.matchReasons?.map((reason, i) => (
-                      <span key={i} className={`backdrop-blur-md text-white text-[10px] font-black px-2.5 py-1 rounded-lg shadow-sm ${reason === 'Món yêu thích của bạn' ? 'bg-rose-500/90' : 'bg-green-500/90'}`}>
+                      <span key={i} className={`backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-sm ${reason === 'Món yêu thích của bạn' ? 'bg-rose-500/90' : 'bg-green-500/90'}`}>
                         {reason === 'Món yêu thích của bạn' ? '❤️' : '✓'} {reason}
                       </span>
                     ))}
@@ -247,14 +246,14 @@ const RecommendationsPage = () => {
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     />
                     {meal.totalNutrition?.calories && (
-                      <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-xl font-black text-xs text-orange-600 shadow-sm border border-white/50">
+                      <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-xl font-bold text-xs text-orange-600 shadow-sm border border-white/50">
                         {meal.totalNutrition.calories} kcal
                       </div>
                     )}
                   </div>
 
                   <div className="p-5 flex flex-col flex-grow">
-                    <h3 className="font-black text-lg text-slate-900 line-clamp-1 mb-2 group-hover:text-green-600 transition-colors">
+                    <h3 className="font-bold text-lg text-slate-900 line-clamp-1 mb-2 group-hover:text-green-600 transition-colors">
                       {meal.name}
                     </h3>
                     

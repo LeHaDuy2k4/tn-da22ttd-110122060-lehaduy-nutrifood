@@ -50,13 +50,13 @@ export function SigninForm({ signInFn, isLoading }) {
           </Link>
         </div>
 
-        {/* Tiêu đề */}
+        {/* Tiêu đề 🎯 text-2xl font-bold */}
         <div className="mb-10 text-center sm:text-left">
-          <h2 className="text-3xl md:text-4xl font-extrabold !text-slate-900 mb-3">
+          <h2 className="text-2xl font-bold text-slate-900 mb-3">
             Đăng Nhập
           </h2>
           <p className="text-slate-600 text-base leading-relaxed">
-            Chào mừng bạn quay lại với hệ thống Nutri<span className="!text-green-600 font-bold">Food</span>.
+            Chào mừng bạn quay lại với hệ thống Nutri<span className="text-green-600 font-bold">Food</span>.
           </p>
         </div>
 
@@ -65,7 +65,7 @@ export function SigninForm({ signInFn, isLoading }) {
           
           {/* Nhập Tên đăng nhập */}
           <div>
-            <label className="block text-sm font-bold text-slate-700 mb-2" htmlFor="username">
+            <label className="block text-sm font-semibold text-slate-700 mb-2" htmlFor="username">
               Tên đăng nhập
             </label>
             <input
@@ -80,7 +80,7 @@ export function SigninForm({ signInFn, isLoading }) {
           
           {/* Nhập Mật khẩu */}
           <div>
-            <label className="block text-sm font-bold text-slate-700 mb-2" htmlFor="password">
+            <label className="block text-sm font-semibold text-slate-700 mb-2" htmlFor="password">
               Mật khẩu
             </label>
             <input
@@ -107,25 +107,25 @@ export function SigninForm({ signInFn, isLoading }) {
             </div>
           </div>
 
-          {/* Nút Submit lắng nghe trạng thái isLoading từ Zustand */}
+          {/* Nút Submit */}
           <div className="pt-4">
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full flex justify-center py-4 px-4 rounded-xl text-white font-bold text-lg bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-300 shadow-[0_4px_14px_0_rgba(22,163,74,0.39)] hover:shadow-[0_6px_20px_rgba(22,163,74,0.23)] hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0"
+              className="w-full flex justify-center py-4 px-4 rounded-xl text-white font-semibold text-lg bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-300 shadow-[0_4px_14px_0_rgba(22,163,74,0.39)] hover:shadow-[0_6px_20px_rgba(22,163,74,0.23)] hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0"
             >
               {isLoading ? 'Đang xử lý...' : 'Đăng Nhập'}
             </button>
           </div>
         </form>
         
-        {/* Nút chuyển hướng sang Đăng ký sử dụng Link */}
+        {/* Nút chuyển hướng sang Đăng ký */}
         <div className="mt-8 pt-6 border-t border-slate-100 text-center">
           <p className="text-slate-600">
             Bạn chưa có tài khoản?{' '}
             <Link 
               to="/signup" 
-              className="font-bold !text-green-600 hover:text-green-500 transition duration-300"
+              className="font-semibold text-green-600 hover:text-green-500 transition duration-300"
             >
               Tạo tài khoản mới
             </Link>

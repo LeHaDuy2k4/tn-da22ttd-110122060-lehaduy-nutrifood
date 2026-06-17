@@ -10,7 +10,7 @@ const Meal_log = () => {
 
   // --- STATE CHO PHÂN TRANG ---
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // 🎯 Đã đổi thành 5 mục mỗi trang theo yêu cầu
+  const itemsPerPage = 5;
 
   // 1. GỌI API LẤY TOÀN BỘ NHẬT KÝ
   const fetchAllMealLogs = async () => {
@@ -43,7 +43,7 @@ const Meal_log = () => {
     setCurrentPage(1);
   }, [searchTerm]);
 
-  // 2. XỬ LÝ XÓA BẢN GHI
+  // 2. XỬ LÝ XÓA BẢN GHI (Giao diện UI có thể được nâng cấp thành Modal nếu bạn muốn sau này)
   const handleDelete = async (id, foodName) => {
     if (window.confirm(`Bạn có chắc chắn muốn xóa nhật ký món "${foodName}" khỏi hệ thống không?`)) {
       try {
@@ -119,31 +119,42 @@ const Meal_log = () => {
     return pages;
   };
 
-  // Hàm format ngày giờ
+  // 🎯 FIX LỖI THỜI GIAN: Ép đúng Múi giờ Việt Nam (UTC+7) và định dạng hiển thị chuẩn
   const formatDate = (dateString) => {
-    const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-    return new Date(dateString).toLocaleDateString('vi-VN', options);
+    if (!dateString) return "Không rõ thời gian";
+    const date = new Date(dateString);
+    
+    return date.toLocaleString('vi-VN', { 
+      timeZone: 'Asia/Ho_Chi_Minh',
+      year: 'numeric', 
+      month: '2-digit', 
+      day: '2-digit', 
+      hour: '2-digit', 
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false // Ép dùng hệ 24h cho chuyên nghiệp
+    });
   };
 
   // Render màu sắc (Badge)
   const renderMealTypeBadge = (type) => {
     switch(type?.toLowerCase()) {
-      case 'bữa sáng': case 'sáng': return <span className="bg-yellow-100 text-yellow-700 border border-yellow-200 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider">Bữa Sáng</span>;
-      case 'bữa trưa': case 'trưa': return <span className="bg-orange-100 text-orange-700 border border-orange-200 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider">Bữa Trưa</span>;
-      case 'bữa tối': case 'tối': return <span className="bg-indigo-100 text-indigo-700 border border-indigo-200 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider">Bữa Tối</span>;
-      default: return <span className="bg-slate-100 text-slate-700 border border-slate-200 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider">{type || 'Khác'}</span>;
+      case 'bữa sáng': case 'sáng': return <span className="bg-yellow-100 text-yellow-700 border border-yellow-200 px-2 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wider">Bữa Sáng</span>;
+      case 'bữa trưa': case 'trưa': return <span className="bg-orange-100 text-orange-700 border border-orange-200 px-2 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wider">Bữa Trưa</span>;
+      case 'bữa tối': case 'tối': return <span className="bg-indigo-100 text-indigo-700 border border-indigo-200 px-2 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wider">Bữa Tối</span>;
+      default: return <span className="bg-slate-100 text-slate-700 border border-slate-200 px-2 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wider">{type || 'Khác'}</span>;
     }
   };
 
   return (
     <AdminLayout>
-      <div className="space-y-6 animate-fadeIn pb-10">
+      <div className="space-y-6 animate-fadeIn pb-10 font-sans">
         
         {/* HEADER */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Nhật ký Ăn uống</h1>
-            <p className="text-slate-500 text-sm mt-1">Giám sát dữ liệu tiêu thụ thực đơn của người dùng trên toàn hệ thống.</p>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Nhật ký Ăn uống</h1>
+            <p className="text-slate-500 text-sm mt-1 font-medium">Giám sát dữ liệu tiêu thụ thực đơn của người dùng trên toàn hệ thống.</p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -168,11 +179,11 @@ const Meal_log = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-100">
-                  <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-wider w-16">STT</th>
-                  <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-wider">Thông tin nhật ký</th>
-                  <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-wider">Dinh dưỡng (Đã tiêu thụ)</th>
-                  <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-wider">Khẩu phần & Thời gian</th>
-                  <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-wider text-right">Hành động</th>
+                  <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider w-16">STT</th>
+                  <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Thông tin nhật ký</th>
+                  <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Dinh dưỡng (Đã tiêu thụ)</th>
+                  <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Khẩu phần & Thời gian</th>
+                  <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Hành động</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -197,18 +208,18 @@ const Meal_log = () => {
                     <tr key={log._id} className="hover:bg-slate-50/50 transition-colors group">
                       
                       {/* STT */}
-                      <td className="px-6 py-4 text-sm font-bold text-slate-400">
+                      <td className="px-6 py-4 text-sm font-semibold text-slate-400">
                         {(currentPage - 1) * itemsPerPage + index + 1}
                       </td>
 
                       {/* Cột 1: Thông tin nhật ký */}
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center text-green-600 font-black uppercase border border-green-200 shrink-0 shadow-sm">
+                          <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center text-green-600 font-bold uppercase border border-green-200 shrink-0 shadow-sm">
                             {log.foodName?.charAt(0) || 'M'}
                           </div>
                           <div>
-                            <p className="font-bold text-slate-900 line-clamp-1 max-w-[200px]">{log.foodName}</p>
+                            <p className="font-semibold text-slate-900 line-clamp-1 max-w-[200px]">{log.foodName}</p>
                             <div className="mt-1.5 flex items-center gap-2">
                               {renderMealTypeBadge(log.mealType)}
                               <span className="text-[11px] font-medium text-slate-500">
@@ -222,7 +233,7 @@ const Meal_log = () => {
                       {/* Cột 2: Dinh dưỡng */}
                       <td className="px-6 py-4">
                         {log.nutritionSnapshot && log.nutritionSnapshot.calories ? (
-                          <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold max-w-[200px]">
+                          <div className="flex flex-wrap items-center gap-2 text-[10px] font-semibold max-w-[200px]">
                             <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded-md border border-orange-200" title="Calories">🔥 {log.nutritionSnapshot.calories} kcal</span>
                             <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-md border border-blue-200" title="Protein">🥩 {log.nutritionSnapshot.protein || 0}g</span>
                             <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-md border border-yellow-200" title="Carbs">🌾 {log.nutritionSnapshot.carbs || 0}g</span>
@@ -236,7 +247,7 @@ const Meal_log = () => {
                       {/* Cột 3: Khẩu phần & Thời gian */}
                       <td className="px-6 py-4">
                         <div className="flex flex-col gap-1.5">
-                          <span className="text-sm font-bold text-slate-800">👤 {log.servingsConsumed} phần</span>
+                          <span className="text-sm font-semibold text-slate-800">👤 {log.servingsConsumed} phần</span>
                           <span className="text-[11px] font-medium text-slate-600 bg-slate-100 px-2 py-1 rounded-lg border border-slate-200 w-max">
                             🕒 {formatDate(log.consumedAt)}
                           </span>
@@ -268,7 +279,7 @@ const Meal_log = () => {
           {!isLoading && filteredLogs.length > 0 && (
             <div className="bg-slate-50 border-t border-slate-100 p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
               <span className="text-sm font-medium text-slate-500">
-                Hiển thị <span className="font-bold text-slate-900">{(currentPage - 1) * itemsPerPage + 1}</span> - <span className="font-bold text-slate-900">{Math.min(currentPage * itemsPerPage, filteredLogs.length)}</span> trong tổng số <span className="font-bold text-slate-900">{filteredLogs.length}</span> bản ghi
+                Hiển thị <span className="font-semibold text-slate-900">{(currentPage - 1) * itemsPerPage + 1}</span> - <span className="font-semibold text-slate-900">{Math.min(currentPage * itemsPerPage, filteredLogs.length)}</span> trong tổng số <span className="font-semibold text-slate-900">{filteredLogs.length}</span> bản ghi
               </span>
               
               <div className="flex items-center gap-1.5">
@@ -276,7 +287,7 @@ const Meal_log = () => {
                 <button 
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="w-8 h-8 flex items-center justify-center text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-bold"
+                  className="w-8 h-8 flex items-center justify-center text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
                   title="Trang trước"
                 >
                   &lt;
@@ -287,7 +298,7 @@ const Meal_log = () => {
                   <button
                     key={pageNumber}
                     onClick={() => handlePageChange(pageNumber)}
-                    className={`w-8 h-8 flex items-center justify-center text-sm font-bold rounded-lg transition-colors ${
+                    className={`w-8 h-8 flex items-center justify-center text-sm font-semibold rounded-lg transition-colors ${
                       currentPage === pageNumber 
                         ? 'bg-green-600 text-white shadow-sm' 
                         : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
@@ -299,14 +310,14 @@ const Meal_log = () => {
 
                 {/* Dấu ba chấm nếu còn nhiều trang phía sau */}
                 {totalPages > 5 && currentPage < totalPages - 2 && (
-                   <span className="w-8 h-8 flex items-center justify-center text-slate-400 font-bold">...</span>
+                   <span className="w-8 h-8 flex items-center justify-center text-slate-400 font-medium">...</span>
                 )}
 
                 {/* Nút Next */}
                 <button 
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className="w-8 h-8 flex items-center justify-center text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-bold"
+                  className="w-8 h-8 flex items-center justify-center text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
                   title="Trang sau"
                 >
                   &gt;

@@ -26,6 +26,6 @@ router.put('/read-all', markAllAsRead);
 router.put('/:id/read', markAsRead);
 
 // 5. Xóa 1 thông báo cụ thể khỏi CSDL
-router.delete('/:id', deleteNotification);
+router.delete("/:id", protectedRoute, deleteNotification);
 
 export default router;
