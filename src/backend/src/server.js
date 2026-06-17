@@ -22,8 +22,12 @@ import favoriteRoute from './routes/favorite_mealsRouters.js';
 import mealLogRoute from './routes/meal_logsRouters.js';
 import aiRoute from './routes/aiRouters.js';
 import mealplanRoute from './routes/mealplansRouters.js';
-import chatRoute from './routes/chatRouters.js'; // 🎯 MỚI THÊM: Import Router của Trợ lý ảo Chatbot
-import notificationRoute from './routes/notificationRouters.js'; // 🎯 MỚI THÊM: Import Router của Thông báo (Notification)
+import chatRoute from './routes/chatRouters.js'; 
+import notificationRoute from './routes/notificationRouters.js'; 
+
+// 🎯 MỚI THÊM: Import module quét tự động Cron Job
+// (Lưu ý: Nếu file server này nằm ngoài thư mục src, hãy đổi thành './src/utils/cronJobs.js')
+import { startCronJobs } from './utils/cronJobs.js'; 
 
 const PORT = process.env.PORT || 5001;
 const app = express();
@@ -46,7 +50,7 @@ app.use(express.json({ limit: "10mb" }));
 // Đọc dữ liệu Cookie từ request gửi lên
 app.use(cookieParser());
 
-// 🎯 MỚI THÊM: Cấp quyền truy cập công khai cho thư mục chứa ảnh upload
+// Cấp quyền truy cập công khai cho thư mục chứa ảnh upload
 // Đảm bảo Frontend gọi http://localhost:5001/uploads/... sẽ tải được ảnh
 app.use('/uploads', express.static(path.join(process.cwd(), 'src', 'uploads')));
 
@@ -69,12 +73,12 @@ app.use("/api/users", protectedRoute, userRoute);
 // 🟣 Nhóm 4: Personalization & Logging (Đã có middleware bảo vệ bên trong file router)
 app.use("/api/favorites", favoriteRoute);
 app.use("/api/meal-logs", mealLogRoute);
-app.use("/api/notifications", notificationRoute); // 🎯 MỚI THÊM: Kích hoạt định tuyến cho Thông báo (Notifications)
+app.use("/api/notifications", notificationRoute); 
 
 // 🔴 Nhóm 5: AI Integration, Lộ trình & Chatbot LLM
 app.use('/api/ai', aiRoute);
 app.use('/api/meal-plans', mealplanRoute); 
-app.use('/api/chat', chatRoute); // 🎯 MỚI THÊM: Kích hoạt định tuyến cho Trợ lý ảo Chatbot
+app.use('/api/chat', chatRoute); 
 
 
 // ==========================================
@@ -90,13 +94,16 @@ app.use((err, req, res, next) => {
 });
 
 // ==========================================
-// 4. KHỔI CHẠY HỆ THỐNG CƠ SỞ DỮ LIỆU & SERVER
+// 4. KHỞI CHẠY HỆ THỐNG CƠ SỞ DỮ LIỆU & SERVER
 // ==========================================
 connectDB()
     .then(() => {
         app.listen(PORT, () => {
             console.log(`🚀 Server NutriFood đang chạy cực kỳ ổn định trên cổng ${PORT}`);
             console.log(`🧠 Gemini AI Configured: ${process.env.GEMINI_API_KEY ? "SUCCESS ✅" : "FAILED ❌ (Missing API Key)"}`);
+            
+            // 🎯 MỚI THÊM: Kích hoạt hệ thống "Bác bưu tá" quét tự động
+            startCronJobs();
         });
     })
     .catch((error) => {

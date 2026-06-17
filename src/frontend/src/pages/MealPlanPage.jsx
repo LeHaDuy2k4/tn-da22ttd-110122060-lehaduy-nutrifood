@@ -55,7 +55,7 @@ const MealPlanPage = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      // 🎯 TỐI ƯU HÓA: Xóa bộ nhớ đệm trạng thái nút bấm của tuần cũ
+      // Xóa bộ nhớ đệm trạng thái nút bấm của tuần cũ
       localStorage.removeItem('nutrifood_logged_meals');
       setLoggedMeals([]); 
 
@@ -84,7 +84,6 @@ const MealPlanPage = () => {
       const token = localStorage.getItem('nutrifood_token');
       const mealDetails = mealObj.mealId; 
       
-      // 🎯 TỐI ƯU HÓA: Dùng Optional Chaining (?.) để chống sập ứng dụng nếu data thiếu
       const payload = {
         mealId: mealDetails?._id,
         foodName: mealDetails?.name || "Món ăn chưa xác định",
@@ -104,7 +103,7 @@ const MealPlanPage = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      // Cập nhật mảng LocalStorage
+      // Cập nhật mảng LocalStorage nếu Backend trả về thành công (201)
       const uniqueMealKey = `${planDate}-${mealType}`;
       const newLoggedMeals = [...loggedMeals, uniqueMealKey];
       setLoggedMeals(newLoggedMeals);
@@ -112,7 +111,11 @@ const MealPlanPage = () => {
 
       toast.success(`Đã đánh dấu hoàn thành: ${mealDetails?.name || ""}`);
     } catch (error) {
-      toast.error("Không thể ghi nhận món ăn vào nhật ký lúc này.");
+      if (error.response && error.response.data && !error.response.data.success) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Không thể ghi nhận món ăn vào nhật ký lúc này.");
+      }
     }
   };
 
@@ -124,7 +127,7 @@ const MealPlanPage = () => {
       'bữa phụ': 'bg-slate-100 text-slate-700'
     };
     const style = badges[type?.toLowerCase()] || 'bg-slate-100 text-slate-700';
-    return <span className={`${style} px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider`}>{type || 'Khác'}</span>;
+    return <span className={`${style} px-2.5 py-1 rounded-lg text-xs font-semibold uppercase tracking-wider`}>{type || 'Khác'}</span>;
   };
 
   return (
@@ -135,24 +138,35 @@ const MealPlanPage = () => {
           
           <div className="mb-8 text-center md:text-left flex flex-col md:flex-row justify-between items-center gap-4">
             <div>
-              <h1 className="text-3xl font-black text-slate-900 tracking-tight mb-2">Lộ Trình Tuần Dinh Dưỡng</h1>
+              <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-2">Lộ Trình Tuần Dinh Dưỡng</h1>
               <p className="text-slate-500 font-medium">Hệ thống AI phân tích TDEE và đề xuất cấu trúc bữa ăn trọn vẹn 7 ngày.</p>
             </div>
 
-            <button 
-              onClick={handleGeneratePlan}
-              disabled={isGenerating}
-              className="bg-green-600 text-white font-bold px-6 py-3 rounded-xl hover:bg-green-700 transition shadow-sm disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2 text-sm"
-            >
-              {isGenerating ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Đang xử lý thuật toán...
-                </>
-              ) : (
-                <>✨ Khởi tạo / Làm mới</>
-              )}
-            </button>
+            {/* 🎯 ĐÃ THÊM: Cụm Nút Điều Hướng */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button 
+                onClick={() => navigate('/meal-logs')} 
+                className="bg-white border border-slate-200 text-slate-700 font-semibold px-6 py-3 rounded-xl hover:bg-slate-50 transition shadow-sm flex items-center justify-center gap-2 text-sm"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                Nhật ký thực đơn
+              </button>
+
+              <button 
+                onClick={handleGeneratePlan}
+                disabled={isGenerating}
+                className="bg-green-600 text-white font-semibold px-6 py-3 rounded-xl hover:bg-green-700 transition shadow-sm disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
+              >
+                {isGenerating ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Đang xử lý thuật toán...
+                  </>
+                ) : (
+                  <>✨ Khởi tạo / Làm mới</>
+                )}
+              </button>
+            </div>
           </div>
 
           {isLoading ? (
@@ -162,7 +176,7 @@ const MealPlanPage = () => {
               <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-6 shadow-sm border border-green-100">
                 <span className="text-4xl">🤖</span>
               </div>
-              <h2 className="text-xl font-black text-green-800 mb-2">Chưa có lộ trình tuần này</h2>
+              <h2 className="text-xl font-bold text-green-800 mb-2">Chưa có lộ trình tuần này</h2>
               <p className="text-slate-600 font-medium text-sm max-w-sm mb-6 leading-relaxed">
                 Hãy nhấn nút "Khởi tạo" ở góc trên để Generative AI bắt đầu thiết kế thực đơn chuẩn khoa học cho riêng bạn.
               </p>
@@ -173,24 +187,23 @@ const MealPlanPage = () => {
               <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider">Đang áp dụng</span>
-                    <p className="text-slate-800 font-black text-lg">
+                    <span className="bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-lg text-xs font-semibold uppercase tracking-wider">Đang áp dụng</span>
+                    <p className="text-slate-800 font-bold text-lg">
                       {new Date(mealPlan.startDate).toLocaleDateString('vi-VN')} - {new Date(mealPlan.endDate).toLocaleDateString('vi-VN')}
                     </p>
                   </div>
                   <p className="text-sm font-medium text-slate-500">
-                    Mục tiêu năng lượng AI phân bổ: <span className="font-bold text-slate-800">{mealPlan.totalDailyCalories} kcal/ngày</span>
+                    Mục tiêu năng lượng AI phân bổ: <span className="font-semibold text-slate-800">{mealPlan.totalDailyCalories} kcal/ngày</span>
                   </p>
                 </div>
-                
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {mealPlan.dailyMenus?.map((day, idx) => (
                   <div key={idx} className="bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col overflow-hidden">
                     <div className="bg-slate-50 border-b border-slate-100 px-4 py-3 flex justify-between items-center">
-                      <h3 className="font-black text-slate-800 tracking-tight">Ngày {day.dayNumber}</h3>
-                      {day.date && <p className="text-xs font-bold text-slate-400">{new Date(day.date).toLocaleDateString('vi-VN')}</p>}
+                      <h3 className="font-bold text-slate-800 tracking-tight">Ngày {day.dayNumber}</h3>
+                      {day.date && <p className="text-xs font-medium text-slate-500">{new Date(day.date).toLocaleDateString('vi-VN')}</p>}
                     </div>
                     
                     <div className="p-4 space-y-4 flex-grow">
@@ -206,8 +219,8 @@ const MealPlanPage = () => {
                               <div className="mb-1">
                                 {renderMealTypeBadge(mealObj.mealType)}
                               </div>
-                              <p className="font-bold text-slate-800 text-sm">{mealInfo?.name || "Món ăn bị lỗi"}</p>
-                              <p className="text-xs font-bold text-slate-400 mt-1">
+                              <p className="font-semibold text-slate-800 text-sm">{mealInfo?.name || "Món ăn bị lỗi"}</p>
+                              <p className="text-xs font-medium text-slate-500 mt-1">
                                 {mealInfo?.totalNutrition?.calories || 0} kcal
                               </p>
                             </div>
@@ -224,7 +237,7 @@ const MealPlanPage = () => {
                               title={isLogged ? "Đã ghi nhận" : "Ghi nhận vào nhật ký"}
                             >
                               {isLogged ? (
-                                <span className="text-xs font-bold">✓ Đã ăn</span>
+                                <span className="text-xs font-semibold">✓ Đã ăn</span>
                               ) : (
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path></svg>
                               )}

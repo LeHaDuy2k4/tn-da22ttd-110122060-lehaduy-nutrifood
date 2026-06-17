@@ -1,7 +1,7 @@
 import MealPlan from "../models/MealPlan.js";
 import Meal from "../models/Meal.js";
 import User from "../models/User.js";
-import MealLog from "../models/Meal_log.js";
+import Notification from "../models/Notification.js"; // 🎯 Đã Import Trạm Thông Báo
 
 /**
  * 🎯 KHỞI TẠO LỘ TRÌNH THỰC ĐƠN TUẦN (Tích hợp AI & Cơ chế dự phòng Fallback)
@@ -39,8 +39,19 @@ export const generateMealPlan = async (req, res) => {
     const targetCalories = user.bmi > 25 ? 1800 : 2200; 
 
     try {
-      // Giả lập API Gemini quá tải
+      // BƯỚC XỬ LÝ CỦA AI SẼ NẰM Ở ĐÂY
+      // Giả lập API Gemini quá tải để test luồng Fallback
       throw new Error("Gemini API Gateway Timeout - Lỗi 503");
+
+      // NẾU AI THÀNH CÔNG, BẠN SẼ GỌI THÔNG BÁO Ở ĐÂY:
+      /*
+      await Notification.create({
+          userId: userId,
+          type: 'SYSTEM', 
+          title: 'Thực đơn của bạn đã sẵn sàng! 🎉',
+          content: 'Trợ lý AI đã thiết kế xong lộ trình ăn uống tiết kiệm và tối ưu cho bạn.'
+      });
+      */
 
     } catch (aiError) {
       isGeneratedByFallback = true;
@@ -55,6 +66,10 @@ export const generateMealPlan = async (req, res) => {
         });
       }
 
+      // 🎯 Lọc các món ăn bình dân (≤ 50.000 VND) cho phương án dự phòng
+      const budgetMeals = availableMeals.filter(meal => (meal.totalEstimatedCost || 0) <= 50000);
+      const sourceMeals = budgetMeals.length >= 4 ? budgetMeals : availableMeals;
+
       const mealTypes = ['Bữa sáng', 'Bữa trưa', 'Bữa tối', 'Bữa phụ'];
 
       for (let i = 1; i <= 7; i++) {
@@ -63,11 +78,11 @@ export const generateMealPlan = async (req, res) => {
 
         let dayMeals = [];
         mealTypes.forEach(type => {
-          const randomMeal = availableMeals[Math.floor(Math.random() * availableMeals.length)];
+          const randomMeal = sourceMeals[Math.floor(Math.random() * sourceMeals.length)];
           dayMeals.push({
             mealType: type,
             mealId: randomMeal._id,
-            isLogged: false // Đảm bảo trường này được khởi tạo
+            isLogged: false 
           });
         });
 
@@ -77,9 +92,22 @@ export const generateMealPlan = async (req, res) => {
           meals: dayMeals
         });
       }
+
+      // 🎯 MẮT XÍCH QUAN TRỌNG: Gọi Trạm Thông Báo để rung chuông trên Frontend
+      try {
+        await Notification.create({
+            userId: userId,
+            type: 'SYSTEM',
+            title: 'Gợi ý thực đơn ngẫu nhiên 🍲',
+            content: 'Hệ thống AI hiện đang bận (Lỗi 503). NutriFood đã tự động kích hoạt lộ trình dự phòng gồm các món bình dân để đảm bảo tiến độ của bạn!'
+        });
+        console.log("👉 Đã lưu thông báo dự phòng 503 vào MongoDB thành công!");
+      } catch (notifErr) {
+        console.error("❌ Lỗi không gọi được module thông báo:", notifErr.message);
+      }
     }
 
-    // Xóa lộ trình cũ
+    // Xóa lộ trình cũ trong tuần hiện tại
     await MealPlan.deleteMany({
       userId,
       startDate: { $lte: endDate },
@@ -96,7 +124,7 @@ export const generateMealPlan = async (req, res) => {
       isGeneratedByFallback
     });
 
-    await newMealPlan.save(); // Lỗi 500 thường xảy ra tại đây nếu thiếu trường required
+    await newMealPlan.save(); 
 
     return res.status(201).json({
       success: true,
@@ -107,9 +135,8 @@ export const generateMealPlan = async (req, res) => {
     });
 
   } catch (error) {
-    // IN RA LỖI CHI TIẾT ĐỂ BẮT ĐÚNG BỆNH
     console.error("🔥 LỖI NGHIÊM TRỌNG TẠI MEALPLAN CONTROLLER:", error.message);
-    console.error(error.stack); // In ra dòng code bị lỗi
+    console.error(error.stack); 
     return res.status(500).json({ success: false, message: "Lỗi máy chủ nội bộ trong quá trình xử lý dữ liệu.", error: error.message });
   }
 };

@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import AdminLayout from '@/components/layouts/AdminLayout'; 
 import axios from 'axios';
 import { toast } from 'sonner'; 
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 const Dashboard = () => {
-  // State lưu trữ dữ liệu đếm tổng
   const [statsData, setStatsData] = useState({
     categories: 0,
     meals: 0,
@@ -12,9 +12,46 @@ const Dashboard = () => {
     users: 0
   });
   
+  // 🎯 State mới lưu dữ liệu biểu đồ thật
+  const [chartData, setChartData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // GỌI API LẤY DỮ LIỆU THẬT
+  // 🎯 Hàm xử lý dữ liệu thật: Lọc và đếm User/Meal theo 6 tháng gần nhất
+  const generateChartData = (usersList, mealsList) => {
+    const monthsData = [];
+    const currentDate = new Date();
+    
+    // Tạo khung 6 tháng gần nhất (VD: từ Tháng 1 -> Tháng 6)
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+      monthsData.push({
+        name: `Tháng ${d.getMonth() + 1}`,
+        year: d.getFullYear(),
+        month: d.getMonth(),
+        users: 0,
+        meals: 0
+      });
+    }
+
+    // Đếm số lượng User đăng ký mỗi tháng (Dựa vào trường createdAt của MongoDB)
+    usersList.forEach(user => {
+      if (!user.createdAt) return;
+      const createdDate = new Date(user.createdAt);
+      const targetMonth = monthsData.find(m => m.month === createdDate.getMonth() && m.year === createdDate.getFullYear());
+      if (targetMonth) targetMonth.users += 1;
+    });
+
+    // Đếm số lượng Món ăn được tạo mỗi tháng
+    mealsList.forEach(meal => {
+      if (!meal.createdAt) return;
+      const createdDate = new Date(meal.createdAt);
+      const targetMonth = monthsData.find(m => m.month === createdDate.getMonth() && m.year === createdDate.getFullYear());
+      if (targetMonth) targetMonth.meals += 1;
+    });
+
+    return monthsData;
+  };
+
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
@@ -22,7 +59,6 @@ const Dashboard = () => {
         const token = localStorage.getItem('nutrifood_token');
         const config = { headers: { Authorization: `Bearer ${token}` }, withCredentials: true };
 
-        // Chạy song song 4 API
         const [catRes, mealRes, ingRes, userRes] = await Promise.allSettled([
           axios.get('http://localhost:5001/api/categories', config),
           axios.get('http://localhost:5001/api/meals', config),
@@ -30,13 +66,22 @@ const Dashboard = () => {
           axios.get('http://localhost:5001/api/users', config) 
         ]);
 
-        // Cập nhật state tổng số lượng
+        const categoriesList = catRes.status === 'fulfilled' && catRes.value.data ? catRes.value.data : [];
+        const mealsList = mealRes.status === 'fulfilled' && mealRes.value.data ? mealRes.value.data : [];
+        const ingredientsList = ingRes.status === 'fulfilled' && ingRes.value.data ? ingRes.value.data : [];
+        const usersList = userRes.status === 'fulfilled' && userRes.value.data ? userRes.value.data : [];
+
+        // Cập nhật tổng số lượng
         setStatsData({
-          categories: catRes.status === 'fulfilled' && catRes.value.data ? catRes.value.data.length : 0,
-          meals: mealRes.status === 'fulfilled' && mealRes.value.data ? mealRes.value.data.length : 0,
-          ingredients: ingRes.status === 'fulfilled' && ingRes.value.data ? ingRes.value.data.length : 0,
-          users: userRes.status === 'fulfilled' && userRes.value.data ? userRes.value.data.length : 0
+          categories: categoriesList.length,
+          meals: mealsList.length,
+          ingredients: ingredientsList.length,
+          users: usersList.length
         });
+
+        // 🎯 Cập nhật biểu đồ bằng dữ liệu thật
+        const realChartData = generateChartData(usersList, mealsList);
+        setChartData(realChartData);
 
       } catch (error) {
         console.error("Lỗi tải dữ liệu Dashboard:", error);
@@ -62,8 +107,8 @@ const Dashboard = () => {
         
         {/* Lời chào đầu trang */}
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Tổng quan hệ thống</h1>
-          <p className="text-slate-500 text-sm mt-2">Báo cáo hoạt động theo thời gian thực của NutriFood.</p>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Tổng quan hệ thống</h1>
+          <p className="text-slate-500 font-medium text-sm mt-2">Báo cáo hoạt động theo thời gian thực của NutriFood.</p>
         </div>
 
         {/* Grid 4 Thẻ Thống Kê */}
@@ -84,11 +129,11 @@ const Dashboard = () => {
                 </div>
               </div>
               <div>
-                <h3 className="text-3xl font-black text-slate-900 mb-1">
+                <h3 className="text-3xl font-bold text-slate-900 mb-1">
                   {isLoading ? '-' : stat.count.toLocaleString()}
                 </h3>
-                <p className="text-sm font-bold text-slate-500 mb-2">{stat.name}</p>
-                <span className="text-[11px] font-bold text-green-600 bg-green-50 px-2 py-1 rounded-md inline-block border border-green-100">
+                <p className="text-sm font-medium text-slate-500 mb-2">{stat.name}</p>
+                <span className="text-[11px] font-medium text-green-600 bg-green-50 px-2 py-1 rounded-md inline-block border border-green-100">
                   {stat.change}
                 </span>
               </div>
@@ -96,7 +141,47 @@ const Dashboard = () => {
           ))}
         </div>
 
-        {/* Banner thông báo (Đã điều chỉnh thành full-width) */}
+        {/* KHU VỰC BIỂU ĐỒ THỐNG KÊ (Dữ liệu thật) */}
+        <div className="bg-white border border-slate-100 rounded-3xl p-6 sm:p-8 shadow-sm">
+          <div className="mb-6">
+            <h2 className="text-lg font-bold text-slate-900">Tăng trưởng nền tảng</h2>
+            <p className="text-sm font-medium text-slate-500">Thống kê lượng người dùng mới và thực đơn cập nhật trong 6 tháng qua.</p>
+          </div>
+          
+          <div className="h-[350px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={chartData}
+                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis 
+                  dataKey="name" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fill: '#64748b', fontSize: 12, fontWeight: 500 }} 
+                  dy={10}
+                />
+                <YAxis 
+                  allowDecimals={false}
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fill: '#64748b', fontSize: 12, fontWeight: 500 }}
+                />
+                <Tooltip 
+                  cursor={{ fill: '#f8fafc' }}
+                  contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)', padding: '12px' }}
+                  labelStyle={{ fontWeight: 'bold', color: '#0f172a', marginBottom: '8px' }}
+                />
+                <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px', fontSize: '14px', fontWeight: 500 }} />
+                <Bar dataKey="users" name="Người dùng mới" fill="#16a34a" radius={[6, 6, 0, 0]} barSize={24} />
+                <Bar dataKey="meals" name="Món ăn mới" fill="#3b82f6" radius={[6, 6, 0, 0]} barSize={24} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Banner thông báo */}
         <div className="bg-gradient-to-r from-green-600 to-emerald-500 rounded-3xl p-8 text-white relative overflow-hidden shadow-lg shadow-green-500/20 flex flex-col sm:flex-row items-center justify-between gap-6 mt-4">
           <div className="absolute top-0 right-0 -m-8 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl"></div>
           <div className="absolute bottom-0 left-0 -m-8 w-40 h-40 bg-green-900 opacity-20 rounded-full blur-2xl"></div>
@@ -108,7 +193,7 @@ const Dashboard = () => {
               </svg>
             </div>
             <div>
-              <h3 className="text-2xl font-bold mb-1 leading-tight">Hệ thống đang hoạt động xuất sắc!</h3>
+              <h3 className="text-xl font-bold mb-1 leading-tight">Hệ thống đang hoạt động xuất sắc!</h3>
               <p className="text-green-50 text-sm font-medium opacity-90 leading-relaxed">
                 Tất cả API, tính toán dinh dưỡng tự động và thuật toán phân loại đang chạy mượt mà. Đã sẵn sàng phục vụ người dùng.
               </p>
@@ -116,7 +201,7 @@ const Dashboard = () => {
           </div>
           
           <div className="relative z-10 shrink-0">
-            <span className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-md rounded-xl text-sm font-bold border border-white/30">
+            <span className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-md rounded-xl text-sm font-medium border border-white/30">
               <span className="w-2 h-2 rounded-full bg-green-300 animate-pulse"></span>
               Trực tuyến
             </span>

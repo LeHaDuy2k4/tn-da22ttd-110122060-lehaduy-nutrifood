@@ -31,10 +31,10 @@ const AdminLayout = ({ children }) => {
       <aside className="w-64 bg-white/90 backdrop-blur-xl border-r border-slate-100 flex flex-col sticky top-0 h-screen transition-all duration-300 z-20 shadow-sm overflow-y-auto">
         <div className="p-6 border-b border-slate-100 flex items-center space-x-3">
           <div className="w-10 h-10 bg-green-600 rounded-xl flex items-center justify-center shadow-lg shadow-green-200 shrink-0">
-            <span className="text-white font-black text-xl">N</span>
+            <span className="text-white font-bold text-xl">N</span>
           </div>
-          <span className="text-xl font-black tracking-tighter text-slate-900 truncate">
-            Admin<span className="!text-green-600">NFood</span>
+          <span className="text-xl font-bold tracking-tight text-slate-900 truncate">
+            Admin<span className="text-green-600">NFood</span>
           </span>
         </div>
 
@@ -45,9 +45,9 @@ const AdminLayout = ({ children }) => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl font-bold transition-all duration-300 ${
+                className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl font-medium transition-all duration-300 ${
                   isActive 
-                    ? 'bg-green-600 text-white shadow-md shadow-green-600/20 translate-x-1' 
+                    ? 'bg-green-600 text-white shadow-md shadow-green-600/20 translate-x-1 font-semibold' 
                     : 'text-slate-500 hover:bg-green-50 hover:text-green-600'
                 }`}
               >
@@ -62,7 +62,7 @@ const AdminLayout = ({ children }) => {
 
         {/* Nút Về Trang chủ */}
         <div className="p-4 border-t border-slate-100">
-          <Link to="/" className="flex items-center space-x-3 px-4 py-3 text-slate-500 font-bold hover:text-green-600 hover:bg-green-50 rounded-2xl transition">
+          <Link to="/" className="flex items-center space-x-3 px-4 py-3 text-slate-500 font-medium hover:text-green-600 hover:bg-green-50 rounded-2xl transition">
             <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
@@ -75,28 +75,25 @@ const AdminLayout = ({ children }) => {
       <main className="flex-1 flex flex-col z-10 relative">
         {/* Top Header */}
         <header className="h-20 bg-white/70 backdrop-blur-md border-b border-slate-100 sticky top-0 z-30 px-8 flex items-center justify-between">
-          <h2 className="font-extrabold text-2xl text-slate-900">
+          <h2 className="font-bold text-2xl text-slate-900 tracking-tight">
             Quản lý <span className="text-green-600">Hệ Thống</span>
           </h2>
           
           <div className="flex items-center space-x-4">
             <div className="text-right hidden sm:block">
-              {/* Đổ dữ liệu Tên từ biến adminName ra đây */}
-              <p className="text-sm font-bold text-slate-900 capitalize">{adminName}</p>
-              {/* Đổ Role từ DB */}
-              <p className="text-[10px] text-green-600 font-bold uppercase tracking-widest">
+              <p className="text-sm font-semibold text-slate-900 capitalize">{adminName}</p>
+              <p className="text-[10px] text-green-600 font-semibold uppercase tracking-widest mt-0.5">
                 {user?.role === 'admin' ? 'Quản trị viên' : 'Nhân viên'}
               </p>
             </div>
             
-            {/* AVATAR CHUẨN (Viền tròn xanh như ảnh mẫu) */}
+            {/* AVATAR CHUẨN */}
             <div className="w-12 h-12 rounded-full border-2 border-white shadow-[0_0_0_2px_#16a34a] p-0.5 shrink-0 flex items-center justify-center bg-white relative">
                <img 
                 src={`https://ui-avatars.com/api/?name=${encodeURIComponent(adminName)}&background=16a34a&color=fff&font-size=0.4&bold=true`} 
                 alt="Admin Avatar" 
                 className="w-full h-full rounded-full object-cover shadow-inner"
               />
-              {/* Vệt sáng xanh phản quang phía sau (Glow effect) */}
               <div className="absolute inset-0 rounded-full shadow-[0_4px_15px_rgba(22,163,74,0.4)] -z-10"></div>
             </div>
           </div>
