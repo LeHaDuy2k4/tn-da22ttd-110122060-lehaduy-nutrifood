@@ -46,12 +46,6 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/categories" className="text-slate-500 hover:text-emerald-600 text-sm font-medium transition-colors flex items-center gap-2.5 group">
-                  <span className="w-1.5 h-1.5 rounded-full bg-slate-200 group-hover:bg-emerald-500 transition-colors"></span>
-                  Tra cứu dinh dưỡng
-                </Link>
-              </li>
-              <li>
                 <Link to="/chatbot" className="text-slate-500 hover:text-emerald-600 text-sm font-medium transition-colors flex items-center gap-2.5 group">
                   <span className="w-1.5 h-1.5 rounded-full bg-slate-200 group-hover:bg-emerald-500 transition-colors"></span>
                   Trợ lý AI tư vấn
@@ -119,8 +113,8 @@ const Footer = () => {
             © {new Date().getFullYear()} NutriFood Project. Đồ án Tốt nghiệp ngành Công nghệ thông tin.
           </p>
           <div className="flex space-x-6">
-            <Link to="#" className="text-slate-400 hover:text-emerald-600 text-xs font-bold tracking-wider transition-colors">ĐIỀU KHOẢN</Link>
-            <Link to="#" className="text-slate-400 hover:text-emerald-600 text-xs font-bold tracking-wider transition-colors">BẢO MẬT</Link>
+            <Link to="/terms" className="text-slate-400 hover:text-emerald-600 text-xs font-bold tracking-wider transition-colors">ĐIỀU KHOẢN</Link>
+            <Link to="/privacy" className="text-slate-400 hover:text-emerald-600 text-xs font-bold tracking-wider transition-colors">BẢO MẬT</Link>
           </div>
         </div>
       </div>

@@ -12,7 +12,7 @@ const Users = () => {
   // Lấy thông tin tài khoản đang đăng nhập
   const { user: currentUser } = useAuthStore(); 
   
-  // 🎯 Đề phòng trường hợp Backend lưu id trong token dưới tên khác (userId hoặc id)
+  // Đề phòng trường hợp Backend lưu id trong token dưới tên khác (userId hoặc id)
   const currentId = currentUser?._id || currentUser?.userId || currentUser?.id;
 
   // GỌI API LẤY DỮ LIỆU NGƯỜI DÙNG THẬT TỪ MONGODB
@@ -88,12 +88,12 @@ const Users = () => {
     }
   };
 
-  // 🎯 Hàm tiện ích lấy Tên hiển thị tốt nhất
+  // Hàm tiện ích lấy Tên hiển thị tốt nhất
   const getDisplayName = (u) => {
     return u.displayName || u.name || u.username || (u.email ? u.email.split('@')[0] : 'Unknown');
   };
 
-  // LỌC DANH SÁCH TÌM KIẾM (Đã thêm lọc theo Tên hiển thị)
+  // LỌC DANH SÁCH TÌM KIẾM
   const filteredUsers = users.filter(user => {
     const searchLower = searchTerm.toLowerCase();
     const displayMatch = getDisplayName(user).toLowerCase().includes(searchLower);
@@ -105,13 +105,14 @@ const Users = () => {
 
   return (
     <AdminLayout>
-      <div className="space-y-6 animate-fadeIn">
+      <div className="space-y-6 animate-fadeIn font-sans">
         
         {/* Header của trang quản lý */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Danh sách Người dùng</h1>
-            <p className="text-slate-500 text-sm mt-1">Quản lý tài khoản và thiết lập phân quyền quản trị.</p>
+            {/* 🎯 Tiêu đề: text-2xl font-bold */}
+            <h1 className="text-2xl font-bold text-slate-900 mb-1">Danh sách người dùng</h1>
+            <p className="text-slate-500 text-sm font-medium">Quản lý tài khoản và thiết lập phân quyền quản trị.</p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -136,10 +137,10 @@ const Users = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-100">
-                  <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-wider">Người dùng</th>
-                  <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-wider">Phân quyền</th>
-                  <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-wider">Trạng thái</th>
-                  <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-wider text-right">Hành động</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Người dùng</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Phân quyền</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Trạng thái</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Hành động</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -160,28 +161,23 @@ const Users = () => {
                   </tr>
                 ) : (
                   filteredUsers.map((u) => {
-                    // Kiểm tra xem dòng hiện tại có phải là người đang đăng nhập không
                     const isCurrentUser = currentId && u._id && String(currentId) === String(u._id);
-                    const displayName = getDisplayName(u); // 🎯 Lấy tên hiển thị
+                    const displayName = getDisplayName(u);
 
                     return (
                       <tr key={u._id} className="hover:bg-slate-50/50 transition-colors group">
                         
-                        {/* Cột 1: Thông tin User */}
+                        {/* 🎯 Cột 1: Thay thế thẻ img thành thẻ div Avatar giống hệt trang Favorite_meal */}
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <img 
-                              // 🎯 Cập nhật API lấy Avatar theo Display Name thay vì Username
-                              src={`https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random&color=fff`} 
-                              alt={displayName} 
-                              className="w-10 h-10 rounded-full object-cover border border-slate-200 shadow-sm"
-                            />
+                            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-bold uppercase shadow-sm border border-green-200 shrink-0">
+                              {displayName.charAt(0).toUpperCase()}
+                            </div>
                             <div>
                               <p className="font-bold text-slate-900">
                                 {displayName} 
                                 {isCurrentUser && <span className="ml-2 text-[10px] text-green-600 bg-green-100 px-1.5 py-0.5 rounded-full">(Bạn)</span>}
                               </p>
-                              {/* Hiển thị @username và email ở dòng dưới để admin dễ kiểm soát */}
                               <p className="text-xs font-medium text-slate-500">
                                 {u.username && <span className="text-slate-400 mr-1">@{u.username} •</span>} 
                                 {u.email}
@@ -194,7 +190,7 @@ const Users = () => {
                         <td className="px-6 py-4">
                           {isCurrentUser ? (
                             <span 
-                              className="inline-flex items-center px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider bg-purple-100 text-purple-700 border border-purple-200 opacity-80 cursor-not-allowed"
+                              className="inline-flex items-center px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider bg-purple-100 text-purple-700 border border-purple-200 opacity-80 cursor-not-allowed"
                               title="Bạn không thể tự thay đổi quyền của chính mình"
                             >
                               Quản trị viên (Bạn)
@@ -203,7 +199,7 @@ const Users = () => {
                             <select
                               value={u.role || 'user'}
                               onChange={(e) => handleUpdateRole(u._id, displayName, e.target.value)}
-                              className={`text-[11px] font-black uppercase tracking-wider px-3 py-1.5 rounded-lg border outline-none cursor-pointer transition-colors shadow-sm ${
+                              className={`text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg border outline-none cursor-pointer transition-colors shadow-sm ${
                                 u.role === 'admin' 
                                   ? 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100' 
                                   : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
@@ -228,7 +224,7 @@ const Users = () => {
                           <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                             {!isCurrentUser && u.role !== 'admin' && (
                               <button 
-                                onClick={() => handleDeleteUser(u._id, displayName)} // Sử dụng displayName trong cảnh báo xóa
+                                onClick={() => handleDeleteUser(u._id, displayName)} 
                                 className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                 title="Xóa tài khoản vĩnh viễn"
                               >

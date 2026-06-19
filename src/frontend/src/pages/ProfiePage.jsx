@@ -116,7 +116,7 @@ const ProfilePage = () => {
         <div className="max-w-3xl mx-auto px-4 relative z-10">
           
           <div className="text-center mb-10">
-            <h1 className="text-3xl md:text-4xl font-bold !text-green-700 mb-3">Hồ Sơ Sức Khỏe</h1>
+            <h1 className="text-3xl md:text-4xl font-bold !text-green-700 mb-3">Hồ Sơ Cá Nhân</h1>
             <p className="text-slate-600">Cập nhật chỉ số cơ thể để AI cá nhân hóa thực đơn cho bạn tốt hơn.</p>
           </div>
 

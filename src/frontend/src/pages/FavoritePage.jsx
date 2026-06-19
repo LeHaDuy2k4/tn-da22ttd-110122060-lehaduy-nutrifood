@@ -61,7 +61,7 @@ const FavoritePage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
+    <div className="min-h-screen flex flex-col bg-slate-50 font-sans">
       <Header />
 
       <main className="flex-grow pt-28 pb-20">
@@ -69,10 +69,11 @@ const FavoritePage = () => {
           
           <div className="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-black text-slate-900 tracking-tight">Món ăn Yêu thích</h1>
-              <p className="text-slate-500 font-medium mt-1">Lưu trữ những công thức tuyệt vời nhất dành riêng cho bạn.</p>
+              {/* 🎯 Tiêu đề chuẩn text-2xl font-bold */}
+              <h1 className="text-2xl font-bold text-slate-900 mb-1">Món ăn Yêu thích</h1>
+              <p className="text-slate-500 font-medium">Lưu trữ những công thức tuyệt vời nhất dành riêng cho bạn.</p>
             </div>
-            <span className="text-sm font-bold text-green-600 bg-green-50 px-4 py-2 rounded-xl">
+            <span className="text-sm font-semibold text-green-600 bg-green-50 px-4 py-2 rounded-xl">
               Tổng cộng: {favorites.length} món
             </span>
           </div>
@@ -94,7 +95,8 @@ const FavoritePage = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-black text-slate-900 mb-1">Chưa có món ăn yêu thích</h3>
+              {/* 🎯 Tiêu đề rỗng chuẩn text-2xl font-bold */}
+              <h3 className="text-2xl font-bold text-slate-900 mb-2">Chưa có món ăn yêu thích</h3>
               <p className="text-slate-500 font-medium text-sm mb-6">Bạn chưa thả tim cho món ăn nào cả. Hãy khám phá thực đơn ngay nhé!</p>
               <Link to="/menu" className="bg-slate-900 text-white font-bold py-2.5 px-6 rounded-full hover:bg-green-600 transition-colors">
                 Khám phá Thực đơn
@@ -132,7 +134,7 @@ const FavoritePage = () => {
                     </div>
 
                     <div className="p-5 flex flex-col flex-grow">
-                      <h3 className="font-black text-lg text-slate-900 line-clamp-1 mb-2 group-hover:text-green-600 transition-colors">
+                      <h3 className="font-bold text-lg text-slate-900 line-clamp-1 mb-2 group-hover:text-green-600 transition-colors">
                         {meal.name}
                       </h3>
                       
@@ -143,7 +145,8 @@ const FavoritePage = () => {
                         </span>
                       </div>
 
-                      <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold">
+                      {/* 🎯 Hạ font tag thông số xuống semibold */}
+                      <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-semibold">
                         <div className="text-orange-600 bg-orange-50 px-2 py-1 rounded-lg">{meal.totalNutrition?.calories || 0} kcal</div>
                         <div className="text-red-500 bg-red-50 px-2 py-1 rounded-lg">P: {meal.totalNutrition?.protein || 0}g</div>
                         <div className="text-blue-500 bg-blue-50 px-2 py-1 rounded-lg">C: {meal.totalNutrition?.carbs || 0}g</div>

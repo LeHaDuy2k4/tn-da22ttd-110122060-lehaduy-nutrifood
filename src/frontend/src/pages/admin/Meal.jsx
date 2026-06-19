@@ -185,7 +185,7 @@ const Meals = () => {
     try {
       setIsSubmitting(true);
       
-      // 🎯 SỬ DỤNG FORMDATA ĐỂ CHỨA FILE VÀ CHỮ
+      // SỬ DỤNG FORMDATA ĐỂ CHỨA FILE VÀ CHỮ
       const submitData = new FormData();
       submitData.append('name', formData.name);
       submitData.append('description', formData.description);
@@ -266,8 +266,8 @@ const Meals = () => {
         {/* HEADER */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Thực Đơn Món Ăn</h1>
-            <p className="text-slate-500 text-sm mt-1">Quản lý công thức, tính toán calo và giá tiền tự động.</p>
+            <h1 className="text-2xl font-bold text-slate-900 mb-1">Thực đơn món ăn</h1>
+            <p className="text-slate-500 text-sm font-medium">Quản lý công thức, tính toán calo và giá tiền tự động.</p>
           </div>
           <div className="flex items-center gap-3">
             <div className="relative">
@@ -287,11 +287,11 @@ const Meals = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-100">
-                  <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-wider">Tên món & Chuẩn bị</th>
-                  <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-wider">Dinh dưỡng (Tổng)</th>
-                  <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-wider">Chi phí ước tính</th>
-                  <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-wider">Trạng thái</th>
-                  <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-wider text-right">Hành động</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Tên món & Chuẩn bị</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Dinh dưỡng (Tổng)</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Chi phí ước tính</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Trạng thái</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Hành động</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -309,7 +309,7 @@ const Meals = () => {
                           {meal.imageUrl ? (
                             <img src={meal.imageUrl} alt={meal.name} className="w-12 h-12 rounded-xl object-cover border border-slate-200" />
                           ) : (
-                            <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center text-green-600 font-black uppercase border border-green-200">{meal.name.charAt(0)}</div>
+                            <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center text-green-600 font-bold uppercase border border-green-200">{meal.name.charAt(0)}</div>
                           )}
                           <div>
                             <p className="font-bold text-slate-900 line-clamp-1 max-w-[200px]">{meal.name}</p>
@@ -422,9 +422,9 @@ const Meals = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fadeIn overflow-y-auto">
           <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-4xl my-10 animate-slideUp">
             <div className="sticky top-0 z-10 p-6 border-b border-slate-100 flex items-center justify-between bg-white/80 backdrop-blur-md rounded-t-[2rem]">
-              <h3 className="text-xl font-black text-slate-900">
+              <h2 className="text-2xl font-bold text-slate-900">
                 {editId ? 'Chỉnh Sửa Công Thức' : 'Thêm Món Ăn Mới'}
-              </h3>
+              </h2>
               <button onClick={closeModal} className="text-slate-400 hover:bg-slate-100 p-2 rounded-xl transition-all">✕</button>
             </div>
             
@@ -432,20 +432,20 @@ const Meals = () => {
               
               {/* PHẦN 1: THÔNG TIN CƠ BẢN */}
               <div className="space-y-4">
-                <h4 className="text-sm font-black text-green-700 uppercase tracking-wider border-b pb-2">1. Thông tin cơ bản</h4>
+                <h3 className="text-sm font-bold text-green-700 uppercase tracking-wider border-b pb-2">1. Thông tin cơ bản</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-bold text-slate-700 mb-1.5">Tên món ăn *</label>
+                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Tên món ăn *</label>
                     <input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:border-green-500 focus:ring-2 focus:ring-green-500/20 outline-none" />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-bold text-slate-700 mb-1.5">Mô tả ngắn</label>
+                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Mô tả ngắn</label>
                     <textarea rows="2" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:border-green-500 focus:ring-2 focus:ring-green-500/20 outline-none resize-none"></textarea>
                   </div>
                   
                   {/* Tích hợp Upload ảnh thay vì URL */}
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-bold text-slate-700 mb-1.5">Hình ảnh món ăn</label>
+                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Hình ảnh món ăn</label>
                     <div className="flex items-center gap-6 p-4 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
                       <input 
                         type="file" 
@@ -472,19 +472,19 @@ const Meals = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1.5">Thời gian sơ chế (phút)</label>
+                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Thời gian sơ chế (phút)</label>
                     <input type="number" min="0" value={formData.prepTime} onChange={e => setFormData({...formData, prepTime: Number(e.target.value)})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:border-green-500 outline-none" />
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1.5">Thời gian nấu (phút)</label>
+                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Thời gian nấu (phút)</label>
                     <input type="number" min="0" value={formData.cookTime} onChange={e => setFormData({...formData, cookTime: Number(e.target.value)})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:border-green-500 outline-none" />
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1.5">Khẩu phần (người)</label>
+                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Khẩu phần (người)</label>
                     <input type="number" min="1" value={formData.servings} onChange={e => setFormData({...formData, servings: Number(e.target.value)})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:border-green-500 outline-none" />
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">Trạng thái hiển thị</label>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Trạng thái hiển thị</label>
                     <label className="relative inline-flex items-center cursor-pointer mt-2">
                       <input type="checkbox" className="sr-only peer" checked={formData.isActive} onChange={e => setFormData({...formData, isActive: e.target.checked})}/>
                       <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:bg-green-600 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
@@ -495,7 +495,7 @@ const Meals = () => {
 
               {/* PHẦN 2: DANH MỤC */}
               <div className="space-y-4">
-                <h4 className="text-sm font-black text-green-700 uppercase tracking-wider border-b pb-2">2. Thuộc Danh Mục</h4>
+                <h3 className="text-sm font-bold text-green-700 uppercase tracking-wider border-b pb-2">2. Thuộc Danh Mục</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   {categories.map(cat => (
                     <label key={cat._id} className={`flex items-center gap-2 p-3 border rounded-xl cursor-pointer transition-all ${formData.categoryIds.includes(cat._id) ? 'bg-green-50 border-green-500 text-green-700' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'}`}>
@@ -509,13 +509,13 @@ const Meals = () => {
               {/* PHẦN 3: NGUYÊN LIỆU ĐỘNG */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between border-b pb-2">
-                  <h4 className="text-sm font-black text-green-700 uppercase tracking-wider">3. Thành phần nguyên liệu *</h4>
+                  <h3 className="text-sm font-bold text-green-700 uppercase tracking-wider">3. Thành phần nguyên liệu *</h3>
                   <button type="button" onClick={handleAddIngredient} className="text-sm font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100">+ Thêm Dòng</button>
                 </div>
                 {formData.ingredients.map((ing, index) => (
                   <div key={index} className="flex flex-col md:flex-row gap-3 items-end p-4 bg-slate-50 rounded-xl border border-slate-100">
                     <div className="w-full md:w-1/2">
-                      <label className="block text-xs font-bold text-slate-500 mb-1">Nguyên liệu từ kho</label>
+                      <label className="block text-xs font-semibold text-slate-500 mb-1">Nguyên liệu từ kho</label>
                       <select value={ing.ingredientId} onChange={(e) => handleUpdateIngredient(index, 'ingredientId', e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm font-medium outline-none">
                         <option value="">-- Chọn nguyên liệu --</option>
                         {ingredientsList.map(item => (
@@ -524,11 +524,11 @@ const Meals = () => {
                       </select>
                     </div>
                     <div className="w-full md:w-1/4">
-                      <label className="block text-xs font-bold text-slate-500 mb-1">Hệ số lượng</label>
+                      <label className="block text-xs font-semibold text-slate-500 mb-1">Hệ số lượng</label>
                       <input type="number" min="0.1" step="0.1" value={ing.quantity} onChange={(e) => handleUpdateIngredient(index, 'quantity', e.target.value)} placeholder="VD: 1.5" className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm outline-none"/>
                     </div>
                     <div className="w-full md:w-1/4">
-                      <label className="block text-xs font-bold text-slate-500 mb-1">Đơn vị hiển thị</label>
+                      <label className="block text-xs font-semibold text-slate-500 mb-1">Đơn vị hiển thị</label>
                       <input type="text" value={ing.unit} onChange={(e) => handleUpdateIngredient(index, 'unit', e.target.value)} placeholder="VD: Muỗng, Gam..." className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm outline-none"/>
                     </div>
                     <button type="button" onClick={() => handleRemoveIngredient(index)} className="text-red-500 hover:text-red-700 p-2.5 bg-red-50 rounded-lg">✕</button>
@@ -539,7 +539,7 @@ const Meals = () => {
               {/* PHẦN 4: HƯỚNG DẪN ĐỘNG */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between border-b pb-2">
-                  <h4 className="text-sm font-black text-green-700 uppercase tracking-wider">4. Các bước thực hiện *</h4>
+                  <h3 className="text-sm font-bold text-green-700 uppercase tracking-wider">4. Các bước thực hiện *</h3>
                   <button type="button" onClick={handleAddInstruction} className="text-sm font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100">+ Thêm Bước</button>
                 </div>
                 {formData.instructions.map((step, index) => (

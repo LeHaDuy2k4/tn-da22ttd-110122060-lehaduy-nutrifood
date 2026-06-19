@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import AdminLayout from '@/components/layouts/AdminLayout'; 
 import axios from 'axios';
 import { toast } from 'sonner'; 
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
 
 const Dashboard = () => {
   const [statsData, setStatsData] = useState({
@@ -18,7 +18,7 @@ const Dashboard = () => {
   const [pieData, setPieData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // 🎯 Hàm xử lý dữ liệu thật: Lọc và đếm theo 6 tháng gần nhất
+  // Hàm xử lý dữ liệu thật: Lọc và đếm theo 6 tháng gần nhất
   const generateChartData = (usersList, mealsList) => {
     const monthsData = [];
     const currentDate = new Date();
@@ -58,13 +58,14 @@ const Dashboard = () => {
         const token = localStorage.getItem('nutrifood_token');
         const config = { headers: { Authorization: `Bearer ${token}` }, withCredentials: true };
 
+        // 🎯 Đã gỡ bỏ catch() ẩn danh để bắt lỗi chính xác và đảm bảo FavRes được lấy đúng
         const [catRes, mealRes, ingRes, userRes, logsRes, favRes] = await Promise.allSettled([
           axios.get('http://localhost:5001/api/categories', config),
           axios.get('http://localhost:5001/api/meals', config),
           axios.get('http://localhost:5001/api/ingredients', config),
           axios.get('http://localhost:5001/api/users', config),
           axios.get('http://localhost:5001/api/meal-logs/all', config), 
-          axios.get('http://localhost:5001/api/favorites/admin/all', config).catch(() => ({ data: [] })) 
+          axios.get('http://localhost:5001/api/favorites/all', config) // 🎯 Đổi endpoint về /all giống trang Favorite_meal
         ]);
 
         const categoriesList = catRes.status === 'fulfilled' && catRes.value.data ? catRes.value.data : [];
@@ -74,14 +75,14 @@ const Dashboard = () => {
         const logsList = logsRes.status === 'fulfilled' && logsRes.value.data ? logsRes.value.data : [];
         const favsList = favRes.status === 'fulfilled' && favRes.value.data ? favRes.value.data : [];
 
-        // Cập nhật tổng số lượng
+        // Cập nhật tổng số lượng (Đã fix lỗi hiển thị số 0 của Favorites)
         setStatsData({
           categories: categoriesList.length,
           meals: mealsList.length,
           ingredients: ingredientsList.length,
           users: usersList.length,
           logs: logsList.length,
-          favorites: favsList.length
+          favorites: favsList.length 
         });
 
         // Cập nhật biểu đồ đường/cột
@@ -121,8 +122,9 @@ const Dashboard = () => {
         
         {/* Lời chào đầu trang */}
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Tổng quan hệ thống</h1>
-          <p className="text-slate-500 font-medium text-sm mt-2">Báo cáo hoạt động theo thời gian thực của NutriFood.</p>
+          {/* 🎯 Tiêu đề chuẩn text-2xl font-bold */}
+          <h1 className="text-2xl font-bold text-slate-900 mb-1">Tổng quan hệ thống</h1>
+          <p className="text-slate-500 font-medium text-sm">Báo cáo hoạt động theo thời gian thực của NutriFood.</p>
         </div>
 
         {/* Grid 4 Thẻ Thống Kê */}
@@ -143,10 +145,11 @@ const Dashboard = () => {
                 </div>
               </div>
               <div>
+                {/* 🎯 Số liệu thống kê chuẩn text-3xl font-bold */}
                 <h3 className="text-3xl font-bold text-slate-900 mb-1">
                   {isLoading ? '-' : stat.count.toLocaleString()}
                 </h3>
-                <p className="text-sm font-medium text-slate-500 mb-2">{stat.name}</p>
+                <p className="text-sm font-semibold text-slate-500 mb-2">{stat.name}</p>
                 <span className="text-[11px] font-medium text-green-600 bg-green-50 px-2 py-1 rounded-md inline-block border border-green-100">
                   {stat.change}
                 </span>
@@ -161,8 +164,9 @@ const Dashboard = () => {
           {/* Biểu đồ Vùng (Area Chart) - Tăng trưởng Người Dùng */}
           <div className="bg-white border border-slate-100 rounded-3xl p-6 sm:p-8 shadow-sm">
             <div className="mb-6">
-              <h2 className="text-lg font-bold text-slate-900">Tăng trưởng Người dùng</h2>
-              <p className="text-sm font-medium text-slate-500 mt-1">Xu hướng đăng ký tài khoản 6 tháng qua.</p>
+              {/* 🎯 Tiêu đề biểu đồ chuẩn text-2xl font-bold */}
+              <h2 className="text-2xl font-bold text-slate-900 mb-1">Tăng trưởng Người dùng</h2>
+              <p className="text-sm font-medium text-slate-500">Xu hướng đăng ký tài khoản 6 tháng qua.</p>
             </div>
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
@@ -176,7 +180,7 @@ const Dashboard = () => {
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12, fontWeight: 500 }} dy={10} />
                   <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12, fontWeight: 500 }} />
-                  <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                  <RechartsTooltip contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
                   <Area type="monotone" dataKey="users" name="Người dùng mới" stroke="#8b5cf6" strokeWidth={3} fillOpacity={1} fill="url(#colorUsers)" />
                 </AreaChart>
               </ResponsiveContainer>
@@ -186,8 +190,9 @@ const Dashboard = () => {
           {/* Biểu đồ Tròn (Pie Chart) - Cấu trúc Nền tảng */}
           <div className="bg-white border border-slate-100 rounded-3xl p-6 sm:p-8 shadow-sm">
             <div className="mb-6">
-              <h2 className="text-lg font-bold text-slate-900">Cấu trúc Nền tảng</h2>
-              <p className="text-sm font-medium text-slate-500 mt-1">Tỷ trọng dữ liệu giữa Món ăn, Nguyên liệu và Danh mục.</p>
+              {/* 🎯 Tiêu đề biểu đồ chuẩn text-2xl font-bold */}
+              <h2 className="text-2xl font-bold text-slate-900 mb-1">Cấu trúc Nền tảng</h2>
+              <p className="text-sm font-medium text-slate-500">Tỷ trọng dữ liệu giữa Món ăn, Nguyên liệu và Danh mục.</p>
             </div>
             <div className="h-[300px] w-full flex items-center justify-center">
               <ResponsiveContainer width="100%" height="100%">
@@ -205,7 +210,7 @@ const Dashboard = () => {
                       <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                  <RechartsTooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
                   <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontWeight: 500, fontSize: '13px' }}/>
                 </PieChart>
               </ResponsiveContainer>
@@ -217,8 +222,9 @@ const Dashboard = () => {
         {/* Biểu đồ Cột (Bar Chart) - Phát triển Thực đơn */}
         <div className="bg-white border border-slate-100 rounded-3xl p-6 sm:p-8 shadow-sm mt-8">
           <div className="mb-6">
-            <h2 className="text-lg font-bold text-slate-900">Phát triển Thực đơn</h2>
-            <p className="text-sm font-medium text-slate-500 mt-1">Số lượng món ăn mới được cập nhật vào hệ thống.</p>
+            {/* 🎯 Tiêu đề biểu đồ chuẩn text-2xl font-bold */}
+            <h2 className="text-2xl font-bold text-slate-900 mb-1">Phát triển Thực đơn</h2>
+            <p className="text-sm font-medium text-slate-500">Số lượng món ăn mới được cập nhật vào hệ thống.</p>
           </div>
           <div className="h-[350px] w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -226,7 +232,7 @@ const Dashboard = () => {
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12, fontWeight: 500 }} dy={10} />
                 <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12, fontWeight: 500 }} />
-                <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', padding: '12px' }} />
+                <RechartsTooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', padding: '12px' }} />
                 <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px', fontSize: '14px', fontWeight: 500 }} />
                 <Bar dataKey="meals" name="Món ăn mới" fill="#16a34a" radius={[6, 6, 0, 0]} barSize={32} />
               </BarChart>
@@ -246,7 +252,8 @@ const Dashboard = () => {
               </svg>
             </div>
             <div>
-              <h3 className="text-xl font-bold mb-1 leading-tight">Hệ thống đang hoạt động xuất sắc!</h3>
+              {/* 🎯 Tiêu đề banner chuẩn text-2xl font-bold */}
+              <h3 className="text-2xl font-bold mb-1 leading-tight">Hệ thống đang hoạt động xuất sắc!</h3>
               <p className="text-green-50 text-sm font-medium opacity-90 leading-relaxed">
                 Tất cả API, tính toán dinh dưỡng tự động và thuật toán phân loại đang chạy mượt mà. Đã sẵn sàng phục vụ người dùng.
               </p>
@@ -254,7 +261,7 @@ const Dashboard = () => {
           </div>
           
           <div className="relative z-10 shrink-0">
-            <span className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-md rounded-xl text-sm font-medium border border-white/30">
+            <span className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-md rounded-xl text-sm font-semibold border border-white/30">
               <span className="w-2 h-2 rounded-full bg-green-300 animate-pulse"></span>
               Trực tuyến
             </span>

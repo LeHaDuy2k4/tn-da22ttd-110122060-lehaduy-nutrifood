@@ -63,10 +63,9 @@ const Favorite_meal = () => {
     }
   };
 
-  // 🎯 3. XỬ LÝ HIỂN THỊ TÊN NGƯỜI DÙNG (Ưu tiên Display Name)
+  // 3. XỬ LÝ HIỂN THỊ TÊN NGƯỜI DÙNG
   const renderUserInfo = (user) => {
     if (!user) return 'Người dùng ẩn danh';
-    // Ưu tiên hiển thị displayName -> name -> phần trước @ của email
     const name = user.displayName || user.name || (user.email ? user.email.split('@')[0] : null);
     return name || `User: ${user._id?.slice(-6) || 'Unknown'}`;
   };
@@ -80,7 +79,6 @@ const Favorite_meal = () => {
   const filteredFavorites = favorites.filter(fav => {
     const searchLower = searchTerm.toLowerCase();
     
-    // 🎯 Tìm kiếm cũng phải tìm theo Display Name
     const userName = (fav.userId?.displayName || fav.userId?.name || "").toLowerCase();
     const mealName = (fav.mealId?.name || "").toLowerCase();
     
@@ -100,20 +98,31 @@ const Favorite_meal = () => {
     }
   };
 
+  // 🎯 FIX LỖI THỜI GIAN: Ép đúng Múi giờ Việt Nam (UTC+7)
   const formatDate = (dateString) => {
-    const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-    return new Date(dateString).toLocaleDateString('vi-VN', options);
+    if (!dateString) return "Không rõ thời gian";
+    const date = new Date(dateString);
+    return date.toLocaleString('vi-VN', { 
+      timeZone: 'Asia/Ho_Chi_Minh',
+      year: 'numeric', 
+      month: '2-digit', 
+      day: '2-digit', 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: false
+    });
   };
 
   return (
     <AdminLayout>
-      <div className="space-y-6 animate-fadeIn pb-10">
+      <div className="space-y-6 animate-fadeIn pb-10 font-sans">
         
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Món ăn Yêu thích</h1>
-            <p className="text-slate-500 text-sm mt-1">Quản lý và theo dõi các món ăn được người dùng thả tim nhiều nhất.</p>
+            {/* 🎯 Tiêu đề text-2xl font-bold */}
+            <h1 className="text-2xl font-bold text-slate-900 mb-1">Món ăn yêu thích</h1>
+            <p className="text-slate-500 text-sm font-medium">Quản lý và theo dõi các món ăn được người dùng thả tim nhiều nhất.</p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -138,11 +147,11 @@ const Favorite_meal = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-100">
-                  <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-wider w-16">STT</th>
-                  <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-wider">Người thả tim</th>
-                  <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-wider">Món ăn yêu thích</th>
-                  <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-wider">Thời gian lưu</th>
-                  <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-wider text-right">Hành động</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider w-16">STT</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Người thả tim</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Món ăn yêu thích</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Thời gian lưu</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Hành động</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -173,10 +182,9 @@ const Favorite_meal = () => {
                           {(currentPage - 1) * itemsPerPage + index + 1}
                         </td>
 
-                        {/* 🎯 Cột Người dùng đã hiển thị Display Name và Avatar chữ cái tương ứng */}
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-black shadow-sm border border-green-200 shrink-0">
+                            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-bold uppercase shadow-sm border border-green-200 shrink-0">
                               {displayName.charAt(0).toUpperCase()}
                             </div>
                             <div>
@@ -199,10 +207,13 @@ const Favorite_meal = () => {
                           </div>
                         </td>
 
+                        {/* 🎯 CỘT THỜI GIAN LƯU MỚI: Hiển thị Badge giống trang Nhật ký */}
                         <td className="px-6 py-4">
-                          <span className="text-sm font-medium text-slate-600 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
-                            {formatDate(fav.createdAt)}
-                          </span>
+                          <div className="flex flex-col gap-1.5">
+                            <span className="text-[11px] font-medium text-slate-600 bg-slate-100 px-2.5 py-1.5 rounded-lg border border-slate-200 w-max shadow-sm">
+                              🕒 {formatDate(fav.createdAt)}
+                            </span>
+                          </div>
                         </td>
 
                         <td className="px-6 py-4 text-right">

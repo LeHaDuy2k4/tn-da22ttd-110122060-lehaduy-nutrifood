@@ -132,14 +132,13 @@ const Category = () => {
     }
   };
 
-  // --- LOGIC PHÂN TRANG (TÍNH TOÁN DỮ LIỆU HIỂN THỊ) ---
+  // --- LOGIC PHÂN TRANG ---
   const filteredCategories = categories.filter(cat => 
     cat.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const totalPages = Math.ceil(filteredCategories.length / itemsPerPage);
   
-  // Cắt mảng để lấy đúng 5 item cho trang hiện tại
   const currentItems = filteredCategories.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
@@ -153,13 +152,14 @@ const Category = () => {
 
   return (
     <AdminLayout>
-      <div className="space-y-6 animate-fadeIn">
+      <div className="space-y-6 animate-fadeIn font-sans">
         
         {/* Header của trang quản lý */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Danh mục Món ăn</h1>
-            <p className="text-slate-500 text-sm mt-1">Quản lý và phân loại các món ăn trong hệ thống.</p>
+            {/* 🎯 Tiêu đề */}
+            <h1 className="text-2xl font-bold text-slate-900 mb-1">Danh mục món ăn</h1>
+            <p className="text-slate-500 text-sm font-medium">Quản lý và phân loại các món ăn trong hệ thống.</p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -194,10 +194,11 @@ const Category = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-100">
-                  <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-wider">Tên danh mục & Phân loại</th>
-                  <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-wider">Mô tả</th>
-                  <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-wider">Trạng thái</th>
-                  <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-wider text-right">Hành động</th>
+                  {/* 🎯 Sửa font-black thành font-bold */}
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Tên danh mục & Phân loại</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Mô tả</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Trạng thái</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Hành động</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -220,10 +221,9 @@ const Category = () => {
                   currentItems.map((cat) => (
                     <tr key={cat._id} className="hover:bg-slate-50/50 transition-colors group">
                       
-                      {/* Cột 1: Tên & Phân loại */}
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center text-green-600 font-black uppercase shadow-sm border border-green-200 shrink-0">
+                          <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center text-green-600 font-bold uppercase shadow-sm border border-green-200 shrink-0">
                             {cat.name.charAt(0)}
                           </div>
                           <div>
@@ -235,14 +235,12 @@ const Category = () => {
                         </div>
                       </td>
 
-                      {/* Cột 2: Mô tả */}
                       <td className="px-6 py-4">
                         <p className="text-sm font-medium text-slate-500 line-clamp-2 max-w-[250px]">
                           {cat.description || <span className="italic text-slate-300">Không có mô tả</span>}
                         </p>
                       </td>
 
-                      {/* Cột 3: Trạng thái */}
                       <td className="px-6 py-4">
                         {cat.isActive ? (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold text-green-600 bg-green-50 border border-green-100">
@@ -255,7 +253,6 @@ const Category = () => {
                         )}
                       </td>
 
-                      {/* Cột 4: Nút Hành động */}
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button 
@@ -286,7 +283,7 @@ const Category = () => {
             </table>
           </div>
           
-          {/* --- THANH PHÂN TRANG (PAGINATION) ĐÃ SỬA ICON --- */}
+          {/* Thanh phân trang */}
           {!isLoading && filteredCategories.length > 0 && (
             <div className="bg-slate-50 border-t border-slate-100 p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
               <span className="text-sm font-medium text-slate-500">
@@ -344,7 +341,8 @@ const Category = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fadeIn">
           <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden animate-slideUp">
             <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-              <h3 className="text-xl font-black text-slate-900">
+              {/* 🎯 Tiêu đề Modal */}
+              <h3 className="text-2xl font-bold text-slate-900">
                 {editId ? 'Sửa Danh Mục' : 'Thêm Danh Mục Mới'}
               </h3>
               <button onClick={closeModal} className="text-slate-400 hover:text-slate-700 bg-white p-2 rounded-xl shadow-sm hover:bg-slate-100 transition-all">
@@ -355,7 +353,7 @@ const Category = () => {
             <form onSubmit={handleSubmit} className="p-6 space-y-5">
               {/* Tên danh mục */}
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">Tên danh mục <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Tên danh mục <span className="text-red-500">*</span></label>
                 <input 
                   type="text"
                   required
@@ -368,7 +366,7 @@ const Category = () => {
 
               {/* Phân loại (Dropdown) */}
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">Phân loại <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Phân loại <span className="text-red-500">*</span></label>
                 <select 
                   value={formData.type}
                   onChange={(e) => setFormData({ ...formData, type: e.target.value })}
@@ -383,7 +381,7 @@ const Category = () => {
 
               {/* Mô tả */}
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">Mô tả</label>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Mô tả</label>
                 <textarea 
                   rows="2"
                   value={formData.description}
@@ -395,7 +393,7 @@ const Category = () => {
 
               {/* Nút gạt Trạng thái (isActive) */}
               <div className="flex items-center justify-between pt-2">
-                <label className="text-sm font-bold text-slate-700">Trạng thái hiển thị</label>
+                <label className="text-sm font-semibold text-slate-700">Trạng thái hiển thị</label>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input 
                     type="checkbox" 

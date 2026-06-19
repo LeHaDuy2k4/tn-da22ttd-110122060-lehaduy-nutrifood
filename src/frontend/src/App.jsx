@@ -19,6 +19,8 @@ import FavoritePage from '@/pages/FavoritePage';
 import MealLogPage from '@/pages/MealLogPage';
 import MealPlanPage from '@/pages/MealPlanPage';
 import ChatbotPage from '@/pages/ChatbotPage';
+import TermsPage from '@/pages/TermsPage';
+import PrivacyPage from '@/pages/PrivacyPage';
 function App() {
   return (
     <>
@@ -49,6 +51,8 @@ function App() {
                <Route path="/meal-logs" element={<MealLogPage />} />
                <Route path="/meal-plan" element={<MealPlanPage />} />
                 <Route path="/chatbot" element={<ChatbotPage />} />
+                <Route path="/terms" element={<TermsPage />} />
+                 <Route path="/privacy" element={<PrivacyPage />} />
             {/* Trang 404 nếu gõ sai link */}
             <Route path='*' element={<HomePage />} />
           </Routes>

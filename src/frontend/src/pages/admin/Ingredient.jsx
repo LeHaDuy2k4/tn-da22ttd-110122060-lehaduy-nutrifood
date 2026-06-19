@@ -168,13 +168,13 @@ const Ingredient = () => {
 
   return (
     <AdminLayout>
-      <div className="space-y-6 animate-fadeIn">
+      <div className="space-y-6 animate-fadeIn font-sans">
         
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Nguyên liệu</h1>
-            <p className="text-slate-500 text-sm mt-1">Quản lý kho dữ liệu thành phần và giá trị dinh dưỡng.</p>
+            <h1 className="text-2xl font-bold text-slate-900 mb-1">Nguyên liệu</h1>
+            <p className="text-slate-500 text-sm font-medium">Quản lý kho dữ liệu thành phần và giá trị dinh dưỡng.</p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -201,11 +201,11 @@ const Ingredient = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-100">
-                  <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-wider">Tên nguyên liệu</th>
-                  <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-wider">Đơn vị & Giá</th>
-                  <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-wider">Giá trị dinh dưỡng</th>
-                  <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-wider">Trạng thái</th>
-                  <th className="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-wider text-right">Hành động</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Tên nguyên liệu</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Đơn vị & Giá</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Giá trị dinh dưỡng</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Trạng thái</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Hành động</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -220,7 +220,7 @@ const Ingredient = () => {
                       {/* Cột 1: Tên */}
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center text-green-600 font-black uppercase shadow-sm border border-green-200 shrink-0">{item.name.charAt(0)}</div>
+                          <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center text-green-600 font-bold uppercase shadow-sm border border-green-200 shrink-0">{item.name.charAt(0)}</div>
                           <div>
                             <p className="font-bold text-slate-900">{item.name}</p>
                             <p className="text-xs text-slate-500 line-clamp-1 w-32" title={item.description}>{item.description || "Không mô tả"}</p>
@@ -236,7 +236,7 @@ const Ingredient = () => {
                         </div>
                       </td>
 
-                      {/* Cột 3: Dinh dưỡng (Đã hiển thị full 4 món) */}
+                      {/* Cột 3: Dinh dưỡng */}
                       <td className="px-6 py-4">
                         <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold max-w-[200px]">
                           <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded-md border border-orange-200" title="Calories">🔥 {item.nutritionalValue?.calories || 0} kcal</span>
@@ -331,9 +331,9 @@ const Ingredient = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fadeIn overflow-y-auto">
           <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-2xl my-auto animate-slideUp">
             <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 rounded-t-[2rem]">
-              <h3 className="text-xl font-black text-slate-900">
+              <h2 className="text-2xl font-bold text-slate-900">
                 {editId ? 'Sửa Nguyên Liệu' : 'Thêm Nguyên Liệu Mới'}
-              </h3>
+              </h2>
               <button onClick={closeModal} className="text-slate-400 hover:text-slate-700 bg-white p-2 rounded-xl shadow-sm hover:bg-slate-100 transition-all">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
@@ -342,11 +342,11 @@ const Ingredient = () => {
             <form onSubmit={handleSubmit} className="p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-bold text-slate-700 mb-1.5">Tên nguyên liệu *</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Tên nguyên liệu *</label>
                   <input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="VD: Thịt ức gà..." className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:border-green-500 outline-none" />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1.5">Đơn vị cơ sở *</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Đơn vị cơ sở *</label>
                   <select value={formData.baseUnit} onChange={(e) => setFormData({ ...formData, baseUnit: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:border-green-500 outline-none cursor-pointer">
                     <option value="100g">100g</option>
                     <option value="1kg">1kg</option>
@@ -358,40 +358,40 @@ const Ingredient = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1.5">Giá tham khảo (VNĐ) *</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Giá tham khảo (VNĐ) *</label>
                   <input type="number" required min="0" step="1000" value={formData.referencePrice} onChange={(e) => setFormData({ ...formData, referencePrice: Number(e.target.value) })} placeholder="VD: 15000" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:border-green-500 outline-none" />
                 </div>
               </div>
 
               <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5">
-                <p className="text-sm font-black text-slate-800 mb-4 border-b border-slate-200 pb-2">Giá trị dinh dưỡng (Tính trên 1 đơn vị cơ sở)</p>
+                <p className="text-sm font-bold text-slate-800 mb-4 border-b border-slate-200 pb-2">Giá trị dinh dưỡng (Tính trên 1 đơn vị cơ sở)</p>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-orange-600 mb-1">Calories (kcal)</label>
+                    <label className="block text-xs font-semibold text-orange-600 mb-1">Calories (kcal)</label>
                     <input type="number" min="0" step="0.1" value={formData.nutritionalValue.calories} onChange={(e) => handleNutritionalChange('calories', e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:border-orange-500 outline-none" />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-blue-600 mb-1">Protein (g)</label>
+                    <label className="block text-xs font-semibold text-blue-600 mb-1">Protein (g)</label>
                     <input type="number" min="0" step="0.1" value={formData.nutritionalValue.protein} onChange={(e) => handleNutritionalChange('protein', e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:border-blue-500 outline-none" />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-yellow-600 mb-1">Carbs (g)</label>
+                    <label className="block text-xs font-semibold text-yellow-600 mb-1">Carbs (g)</label>
                     <input type="number" min="0" step="0.1" value={formData.nutritionalValue.carbs} onChange={(e) => handleNutritionalChange('carbs', e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:border-yellow-500 outline-none" />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-red-600 mb-1">Fat (g)</label>
+                    <label className="block text-xs font-semibold text-red-600 mb-1">Fat (g)</label>
                     <input type="number" min="0" step="0.1" value={formData.nutritionalValue.fat} onChange={(e) => handleNutritionalChange('fat', e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:border-red-500 outline-none" />
                   </div>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5">Mô tả thêm</label>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Mô tả thêm</label>
                 <textarea rows="2" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="Nhập nguồn gốc, đặc điểm..." className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:border-green-500 outline-none resize-none"></textarea>
               </div>
 
               <div className="flex items-center justify-between pt-2">
-                <label className="text-sm font-bold text-slate-700">Trạng thái (Có sẵn trong kho)</label>
+                <label className="text-sm font-semibold text-slate-700">Trạng thái (Có sẵn trong kho)</label>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" className="sr-only peer" checked={formData.isActive} onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })} />
                   <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:bg-green-600 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
@@ -399,9 +399,10 @@ const Ingredient = () => {
               </div>
 
               <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
-                <button type="button" onClick={closeModal} className="flex-1 px-4 py-3 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50">Hủy bỏ</button>
-                <button type="submit" disabled={isSubmitting} className="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 flex items-center justify-center gap-2">
-                  {isSubmitting ? 'Đang lưu...' : (editId ? 'Cập nhật' : 'Thêm nguyên liệu')}
+                <button type="button" onClick={closeModal} className="flex-1 px-4 py-3 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 transition-colors">Hủy bỏ</button>
+                <button type="submit" disabled={isSubmitting} className="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 flex items-center justify-center gap-2 transition-colors">
+                  {isSubmitting && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
+                  {editId ? 'Cập nhật' : 'Thêm nguyên liệu'}
                 </button>
               </div>
             </form>
