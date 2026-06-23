@@ -6,6 +6,14 @@ import { useAuthStore } from '@/stores/useAuthStores';
 import Header from '@/components/layouts/Header';
 import Footer from '@/components/layouts/Footer';
 
+// 🎯 DANH SÁCH CÂU HỎI GỢI Ý ĐƯỢC RÚT GỌN (Đơn giản, dễ tiếp cận)
+const SUGGESTED_QUESTIONS = [
+  "🥗 Lên cho tôi thực đơn ngày hôm nay",
+  "🍳 Gợi ý bữa sáng nhanh gọn",
+  "🍗 Hôm nay ăn gì để giảm cân?",
+  "💪 Tính calo của 1 quả trứng gà"
+];
+
 const ChatbotPage = () => {
   const { user } = useAuthStore();
   const navigate = useNavigate();
@@ -73,9 +81,9 @@ const ChatbotPage = () => {
     setInputMessage('');
   };
 
-  // 4. XÓA / ẨN PHIÊN CHAT (Cập nhật isActive = false)
+  // 4. XÓA / ẨN PHIÊN CHAT
   const handleDeleteSession = async (e, sessionId) => {
-    e.stopPropagation(); // Ngăn sự kiện click lan ra ngoài thẻ cha
+    e.stopPropagation(); 
     if (!window.confirm("Bạn muốn xóa đoạn hội thoại này?")) return;
     
     try {
@@ -92,48 +100,65 @@ const ChatbotPage = () => {
     }
   };
 
-  // 5. GỬI TIN NHẮN CHO AI (Tương thích hoàn hảo với cơ chế Fallback ở Backend)
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
-    if (!inputMessage.trim() || isTyping) return;
-
-    const userText = inputMessage.trim();
+  // 5. HÀM XỬ LÝ GỬI TIN NHẮN (Dùng chung cho Input và Nút Gợi ý)
+  const processSendMessage = async (text) => {
+    if (!text.trim() || isTyping) return;
+    
     setInputMessage(''); 
     
-    // Thêm tin nhắn của User vào UI ngay lập tức (Optimistic UI)
-    const newUserMsg = { sender: 'user', content: userText, timestamp: new Date().toISOString() };
+    // Thêm tin nhắn của User vào UI ngay lập tức
+    const newUserMsg = { sender: 'user', content: text, timestamp: new Date().toISOString() };
     setMessages(prev => [...prev, newUserMsg]);
     setIsTyping(true);
 
     try {
       const token = localStorage.getItem('nutrifood_token');
-      
       const payload = {
         sessionId: currentSessionId, 
-        message: userText
+        message: text
       };
 
       const res = await axios.post('http://localhost:5001/api/chat/send', payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      // Nếu đây là chat mới, cập nhật lại Session ID và fetch lại Lịch sử bên Sidebar
+      // Cập nhật lại Session ID nếu là chat mới
       if (!currentSessionId && res.data.data.sessionId) {
         setCurrentSessionId(res.data.data.sessionId);
         fetchChatHistory(); 
       }
 
-      // Thêm phản hồi của AI (Bao gồm cả phản hồi thực tế từ Gemini 2.5 hoặc phản hồi Fallback) vào UI
       const aiResponse = { sender: 'ai', content: res.data.data.reply, timestamp: new Date().toISOString() };
       setMessages(prev => [...prev, aiResponse]);
 
     } catch (error) {
-      // Chỉ rơi vào khối catch này khi Backend chết hoàn toàn (Node.js sập) hoặc rớt mạng Internet
       toast.error("Hệ thống máy chủ không phản hồi, vui lòng thử lại sau.");
-      setMessages(prev => prev.slice(0, -1)); // Hoàn tác tin nhắn của User khỏi màn hình
+      setMessages(prev => prev.slice(0, -1)); // Hoàn tác tin nhắn
     } finally {
       setIsTyping(false);
     }
+  };
+
+  // 6. FORMAT NỘI DUNG AI (Biến ** thành in đậm, * thành dấu chấm tròn)
+  const formatAiMessage = (text) => {
+    if (!text) return '';
+    
+    // Xử lý bảo mật: Chuyển đổi mã HTML nguy hiểm (XSS)
+    let safeText = text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+
+    // Xử lý Markdown cơ bản của AI
+    let formattedHtml = safeText
+      // Thay thế **chữ** thành <strong>chữ</strong>
+      .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-slate-900">$1</strong>')
+      // Thay thế * đầu dòng thành dấu chấm tròn (bullet)
+      .replace(/(^|\n)\* (.*?)/g, '$1<span class="text-green-600 font-black mr-1.5">•</span> $2')
+      // Đổi \n thành thẻ <br/> để xuống dòng đúng
+      .replace(/\n/g, '<br />');
+
+    return formattedHtml;
   };
 
   return (
@@ -159,7 +184,7 @@ const ChatbotPage = () => {
               {chatSessions.length === 0 ? (
                 <div className="text-center py-10 opacity-50">
                   <span className="text-3xl block mb-2">💬</span>
-                  <p className="text-sm font-medium text-slate-500">Chưa có lịch sử trò chuyện</p>
+                  <p className="text-sm font-medium text-slate-500">Chưa có lịch sử</p>
                 </div>
               ) : (
                 chatSessions.map((session) => (
@@ -183,7 +208,7 @@ const ChatbotPage = () => {
                     <button 
                       onClick={(e) => handleDeleteSession(e, session._id)}
                       className="opacity-0 group-hover:opacity-100 p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition shrink-0"
-                      title="Xóa đoạn chat"
+                      title="Xóa"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                     </button>
@@ -199,37 +224,48 @@ const ChatbotPage = () => {
             {/* Vùng hiển thị tin nhắn */}
             <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 custom-scrollbar bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-slate-50/30">
               {messages.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-center max-w-md mx-auto animate-fadeIn">
+                <div className="h-full flex flex-col items-center justify-center text-center max-w-2xl mx-auto animate-fadeIn px-4">
                   <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6 shadow-inner border border-green-200">
                     <span className="text-4xl">🤖</span>
                   </div>
                   <h2 className="text-2xl font-black text-slate-800 mb-2">Xin chào {user?.displayName || user?.username}!</h2>
-                  <p className="text-slate-500 font-medium text-sm leading-relaxed">
-                    Tôi là Trợ lý dinh dưỡng AI của hệ thống. Tôi có thể giúp bạn tra cứu lượng calo, tư vấn thay thế nguyên liệu món ăn, hoặc phân tích thực đơn. Hãy hỏi tôi bất cứ điều gì!
+                  <p className="text-slate-500 font-medium text-sm leading-relaxed mb-8">
+                    Tôi là Trợ lý dinh dưỡng AI của hệ thống NutriFood. Tôi có thể giúp bạn tra cứu lượng calo, tư vấn thay thế nguyên liệu món ăn, hoặc phân tích thực đơn. Hãy hỏi tôi bất cứ điều gì!
                   </p>
+
+                  {/* 🎯 LƯỚI CÂU HỎI GỢI Ý */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+                    {SUGGESTED_QUESTIONS.map((question, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => processSendMessage(question)}
+                        className="p-4 text-left border border-slate-200 rounded-2xl bg-white hover:bg-green-50 hover:border-green-200 transition-all shadow-sm text-sm font-bold text-slate-700 group"
+                      >
+                        <span className="group-hover:text-green-700 transition-colors">{question}</span>
+                      </button>
+                    ))}
+                  </div>
+
                 </div>
               ) : (
                 messages.map((msg, index) => (
                   <div key={index} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} animate-fadeIn`}>
                     
-                    {/* Avatar AI */}
                     {msg.sender === 'ai' && (
                       <div className="w-8 h-8 rounded-full bg-green-100 border border-green-200 flex items-center justify-center mr-3 shrink-0 mt-1 shadow-sm">
                         <span className="text-sm">🤖</span>
                       </div>
                     )}
                     
-                    {/* Bong bóng tin nhắn */}
+                    {/* Bong bóng tin nhắn đã fix Markdown */}
                     <div 
-                      className={`max-w-[80%] px-5 py-3.5 text-sm leading-relaxed ${
+                      className={`max-w-[85%] sm:max-w-[75%] px-5 py-3.5 text-sm leading-relaxed ${
                         msg.sender === 'user' 
                           ? 'bg-slate-900 text-white rounded-2xl rounded-br-none shadow-md font-medium' 
-                          : 'bg-white border border-slate-200 text-slate-800 rounded-2xl rounded-bl-none shadow-sm font-medium'
+                          : 'bg-white border border-slate-200 text-slate-700 rounded-2xl rounded-bl-none shadow-sm'
                       }`}
-                      style={{ whiteSpace: 'pre-wrap' }}
-                    >
-                      {msg.content}
-                    </div>
+                      dangerouslySetInnerHTML={{ __html: formatAiMessage(msg.content) }}
+                    />
                   </div>
                 ))
               )}
@@ -252,17 +288,20 @@ const ChatbotPage = () => {
 
             {/* Khung nhập liệu (Chat Input) */}
             <div className="p-4 bg-white border-t border-slate-100">
-              <form onSubmit={handleSendMessage} className="max-w-4xl mx-auto relative flex items-end gap-2">
+              <form 
+                onSubmit={(e) => { e.preventDefault(); processSendMessage(inputMessage); }} 
+                className="max-w-4xl mx-auto relative flex items-end gap-2"
+              >
                 <textarea
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault();
-                      handleSendMessage(e);
+                      processSendMessage(inputMessage);
                     }
                   }}
-                  placeholder="Nhập câu hỏi của bạn về dinh dưỡng (Nhấn Enter để gửi)..."
+                  placeholder="Nhập câu hỏi của bạn (Nhấn Enter để gửi)..."
                   className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 pl-4 pr-14 text-sm font-bold focus:outline-none focus:border-green-500 focus:bg-white transition-all resize-none custom-scrollbar shadow-inner"
                   rows="1"
                   style={{ minHeight: '52px', maxHeight: '120px' }}
@@ -276,7 +315,7 @@ const ChatbotPage = () => {
                 </button>
               </form>
               <p className="text-center text-[10px] text-slate-400 font-bold mt-3">
-                AI có thể đưa ra thông tin không chính xác. Hãy tự kiểm chứng trước khi áp dụng vào chế độ y khoa.
+                AI có thể đưa ra thông tin không chính xác. Hãy tự kiểm chứng trước khi áp dụng.
               </p>
             </div>
           </div>
@@ -284,7 +323,7 @@ const ChatbotPage = () => {
         </div>
       </main>
       
-      {/* CSS cho thanh cuộn mảnh mai tinh tế */}
+      {/* CSS cho thanh cuộn */}
       <style dangerouslySetInnerHTML={{__html: `
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }

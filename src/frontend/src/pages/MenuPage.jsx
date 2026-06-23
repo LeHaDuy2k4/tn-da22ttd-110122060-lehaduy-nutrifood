@@ -40,12 +40,15 @@ const MenuPage = () => {
         ]);
 
         if (catRes.status === 'fulfilled' && catRes.value.data) {
+          // Lọc bỏ danh mục bị ẩn
           const activeCategories = catRes.value.data.filter(cat => cat.isActive !== false);
           setCategories(activeCategories);
         }
 
         if (mealRes.status === 'fulfilled' && mealRes.value.data) {
-          setMeals(mealRes.value.data);
+          // 🎯 LỌC BỎ NHỮNG MÓN ĂN ĐÃ BỊ ADMIN ẨN (isActive === false)
+          const activeMeals = mealRes.value.data.filter(meal => meal.isActive !== false);
+          setMeals(activeMeals);
         }
 
       } catch (error) {
@@ -61,7 +64,7 @@ const MenuPage = () => {
 
   // 2. LOGIC LỌC MÓN ĂN (Sử dụng trực tiếp searchFromUrl thay vì state searchTerm cũ)
   const filteredMeals = meals.filter(meal => {
-    // 🎯 Lọc theo từ khóa tìm kiếm từ Header
+    // Lọc theo từ khóa tìm kiếm từ Header
     const matchSearch = searchFromUrl 
       ? meal.name?.toLowerCase().includes(searchFromUrl.toLowerCase()) 
       : true;
@@ -126,7 +129,7 @@ const MenuPage = () => {
           <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Khám phá Thực đơn</h1>
             
-            {/* 🎯 Hiển thị thông báo khi có từ khóa tìm kiếm từ Header */}
+            {/* Hiển thị thông báo khi có từ khóa tìm kiếm từ Header */}
             {searchFromUrl && (
               <div className="flex items-center gap-2 bg-green-50 px-4 py-2 rounded-xl border border-green-100">
                 <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>

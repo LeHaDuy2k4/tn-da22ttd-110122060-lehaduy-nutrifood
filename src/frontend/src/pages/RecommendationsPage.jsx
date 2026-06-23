@@ -15,7 +15,6 @@ const RecommendationsPage = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // 1. Kiểm tra đăng nhập
     if (!user) {
       toast.warning("Bạn cần đăng nhập để xem gợi ý cá nhân hóa!");
       navigate('/signin');
@@ -28,7 +27,7 @@ const RecommendationsPage = () => {
         const token = localStorage.getItem('nutrifood_token');
         const headers = { Authorization: `Bearer ${token}` };
 
-        // 1. Kéo dữ liệu ĐA CHIỀU song song (Profile, Meals, Favorites, Logs)
+        // 1. KÉO DỮ LIỆU ĐA CHIỀU TỪ HỆ THỐNG
         const [profileRes, mealsRes, favRes, logsRes] = await Promise.allSettled([
           axios.get('http://localhost:5001/api/users/me', { headers }),
           axios.get('http://localhost:5001/api/meals'),
@@ -36,11 +35,15 @@ const RecommendationsPage = () => {
           axios.get('http://localhost:5001/api/meal-logs/my-logs', { headers }) 
         ]);
 
-        // Lấy dữ liệu an toàn, tự động bóc tách Object nếu cần
         const userData = profileRes.status === 'fulfilled' ? (profileRes.value?.data?.user || profileRes.value?.data) : null;
-        
+        if (!userData) throw new Error("Không lấy được profile");
+        setProfile(userData);
+
         const rawMeals = mealsRes.status === 'fulfilled' ? mealsRes.value?.data : [];
         const allMeals = Array.isArray(rawMeals) ? rawMeals : (rawMeals?.data || []);
+
+        // LỌC DỮ LIỆU THÔ: Chỉ giữ lại các món đang được Admin cho phép hiển thị
+        const allActiveMeals = allMeals.filter(meal => meal.isActive !== false);
 
         const rawFavs = favRes.status === 'fulfilled' ? favRes.value?.data : [];
         const myFavorites = Array.isArray(rawFavs) ? rawFavs : (rawFavs?.data || []);
@@ -48,79 +51,109 @@ const RecommendationsPage = () => {
         const rawLogs = logsRes.status === 'fulfilled' ? logsRes.value?.data : [];
         const myLogs = Array.isArray(rawLogs) ? rawLogs : (rawLogs?.data || []);
 
-        if (!userData) throw new Error("Không lấy được profile");
-        setProfile(userData);
-
-        // Chuẩn bị mảng để check nhanh hành vi người dùng
         const favoriteMealIds = myFavorites.map(fav => fav.mealId?._id || fav.mealId);
         const loggedFoodNames = myLogs.map(log => log.foodName?.toLowerCase() || ""); 
 
-        // 2. THUẬT TOÁN HYBRID RECOMMENDATION NÂNG CAO
-        let scoredMeals = allMeals.map(meal => {
+        // =====================================================================
+        // THUẬT TOÁN HYBRID RECOMMENDATION - WEIGHTED SCORING SYSTEM
+        // =====================================================================
+        let scoredMeals = allActiveMeals.map(meal => {
           let score = 0;
           let matchReasons = []; 
 
-          // --- PHẦN 1: DỮ LIỆU HÀNH VI (BEHAVIORAL DATA) ---
-          if (favoriteMealIds.includes(meal._id)) {
-            score += 8;
-            matchReasons.push("Món yêu thích của bạn");
-          }
-
-          const mealNameLower = meal.name?.toLowerCase() || "";
-          if (loggedFoodNames.includes(mealNameLower)) {
-            score += 3;
-            matchReasons.push("Món quen thuộc");
-          }
-
-          // --- PHẦN 2: DỮ LIỆU NỘI DUNG (CONTENT-BASED) ---
+          // --- LỚP 1: TỐI ƯU THEO NGÂN SÁCH ---
           if (userData.budgetPreference > 0 && meal.totalEstimatedCost) {
-            const budgetPerMeal = userData.budgetPreference / 3;
+            const budgetPerMeal = userData.budgetPreference / 3; 
+            
             if (meal.totalEstimatedCost <= budgetPerMeal) {
-              score += 2;
+              score += 10;
               matchReasons.push("Tiết kiệm");
+            } else if (meal.totalEstimatedCost <= budgetPerMeal * 1.2) {
+              score += 4; 
             } else {
-              score -= 5;
+              score -= 15; 
             }
           }
 
-          const calories = meal.totalNutrition?.calories || 0;
-          const protein = meal.totalNutrition?.protein || 0;
+          // --- LỚP 2: TỐI ƯU THEO CHỈ SỐ CƠ THỂ VÀ MỤC TIÊU SỨC KHỎE ---
+          const cals = meal.totalNutrition?.calories || 0;
+          const pro = meal.totalNutrition?.protein || 0;
+          const fat = meal.totalNutrition?.fat || 0;
+          const carb = meal.totalNutrition?.carbs || 0;
           
-          if (userData.healthGoal === 'Giảm cân an toàn' || userData.bmi >= 25) {
-            if (calories > 0 && calories <= 450) {
-              score += 3;
+          const goal = userData.healthGoal;
+          const bmi = userData.bmi || 22; 
+
+          // Giảm cân an toàn
+          if (goal === 'Giảm cân an toàn' || bmi >= 25) {
+            if (cals > 0 && cals <= 400) {
+              score += 12;
               matchReasons.push("Ít Calo, giảm mỡ");
-            } else { 
-              score -= 3; 
-            } 
+            } else if (cals > 600) {
+              score -= 12; 
+            }
+            if (pro >= 20) {
+              score += 5;
+            }
+            if (fat > 15) score -= 5;
           } 
-          else if (userData.healthGoal === 'Tăng cân khoa học' || userData.bmi < 18.5) {
-            if (calories >= 550) {
-              score += 3;
-              matchReasons.push("Nhiều năng lượng");
+          // Tăng cân khoa học
+          else if (goal === 'Tăng cân khoa học' || bmi < 18.5) {
+            if (cals >= 500) {
+              score += 12;
+              matchReasons.push("Giàu năng lượng");
+            } else if (cals < 350) {
+              score -= 8; 
+            }
+            if (pro >= 25) {
+              score += 6;
             }
           }
-          else if (userData.healthGoal === 'Tăng cơ giảm mỡ') {
-            if (protein >= 30) {
-              score += 4;
-              matchReasons.push("Nhiều Protein");
+          // Tăng cơ giảm mỡ
+          else if (goal === 'Tăng cơ giảm mỡ') {
+            if (pro >= 30) {
+              score += 15;
+              matchReasons.push("Giàu Protein");
+            } else if (pro >= 20) {
+              score += 6;
+            } else {
+              score -= 8; 
             }
-            if (calories <= 500) score += 1;
+            
+            if (fat <= 15) {
+              score += 6;
+            } else if (fat > 25) {
+              score -= 10; 
+            }
           }
+          // Duy trì cân nặng
           else {
-            if (calories >= 400 && calories <= 600) {
-              score += 2;
+            if (cals >= 400 && cals <= 600) {
+              score += 8;
               matchReasons.push("Cân bằng");
             }
+            if (pro >= 15) score += 3;
+            if (carb >= 30 && carb <= 60) score += 3; 
           }
 
+          // --- LỚP 3: HÀNH VI NGƯỜI DÙNG ---
+          if (favoriteMealIds.includes(meal._id)) {
+            score += 8; 
+            matchReasons.push("Món yêu thích của bạn");
+          }
+          if (loggedFoodNames.includes(meal.name?.toLowerCase())) {
+            score += 3;
+            matchReasons.unshift("Món quen thuộc"); 
+          }
+
+          // --- LỚP 4: SỞ THÍCH CÁ NHÂN ---
           if (userData.interests && userData.interests.length > 0) {
             const mealDesc = `${meal.name} ${meal.description}`.toLowerCase();
             let interestMatched = false;
             
             userData.interests.forEach(interest => {
               if (interest.trim() !== '' && mealDesc.includes(interest.toLowerCase().trim())) {
-                score += 5; 
+                score += 6; 
                 interestMatched = true;
               }
             });
@@ -130,15 +163,18 @@ const RecommendationsPage = () => {
           return { ...meal, score, matchReasons };
         });
 
-        // 3. Xử lý hiển thị (Sắp xếp theo điểm giảm dần)
+        // SẮP XẾP VÀ TRẢ KẾT QUẢ ĐẦU RA
         scoredMeals.sort((a, b) => b.score - a.score);
 
-        const topRecommendations = scoredMeals.filter(m => m.score > 0).map(m => ({
-          ...m,
-          matchReasons: [...new Set(m.matchReasons)].slice(0, 2)
-        })).slice(0, 8);
+        const topRecommendations = scoredMeals
+          .filter(m => m.score > 0)
+          .map(m => ({
+            ...m,
+            matchReasons: [...new Set(m.matchReasons)].slice(0, 2) 
+          }))
+          .slice(0, 8);
 
-        setRecommendedMeals(topRecommendations.length > 0 ? topRecommendations : allMeals.slice(0, 8));
+        setRecommendedMeals(topRecommendations.length > 0 ? topRecommendations : allActiveMeals.slice(0, 8));
 
       } catch (error) {
         console.error("Lỗi thuật toán đề xuất:", error);
@@ -164,13 +200,12 @@ const RecommendationsPage = () => {
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-green-400 opacity-10 rounded-full blur-2xl transform -translate-x-1/2 translate-y-1/2"></div>
           
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-            <span className="inline-block py-1 px-3 rounded-full bg-white/10 border border-white/20 text-green-300 text-sm font-bold tracking-wider mb-4">
+            <span className="inline-block py-1 px-3 rounded-full bg-white/10 border border-white/20 text-green-300 text-sm font-bold tracking-wider mb-4 shadow-sm">
               ✨ ADVANCED HYBRID RECOMMENDATION
             </span>
-            {/* 🎯 Tiêu đề chính cập nhật thành text-2xl (mở rộng sm:text-3xl) font-bold */}
-            <h1 className="text-2xl sm:text-3xl font-bold mb-4 text-white">Thực Đơn Dành Riêng Cho Bạn</h1>
-            <p className="text-green-100 text-lg max-w-2xl mx-auto font-medium">
-              Hệ thống kết hợp phân tích <span className="font-bold text-white">Chỉ số Cơ thể</span> và <span className="font-bold text-white">Thói quen ăn uống</span> của bạn để đưa ra những lựa chọn hoàn hảo nhất.
+            <h1 className="text-3xl sm:text-4xl font-bold mb-4 text-white tracking-tight">Thực Đơn Dành Riêng Cho Bạn</h1>
+            <p className="text-green-50 text-lg max-w-2xl mx-auto font-medium">
+              Hệ thống kết hợp phân tích <span className="font-bold text-white border-b border-green-400 pb-0.5">Chỉ số Cơ thể</span> và <span className="font-bold text-white border-b border-green-400 pb-0.5">Thói quen ăn uống</span> của bạn để đưa ra những lựa chọn hoàn hảo nhất.
             </p>
           </div>
         </div>
@@ -180,27 +215,29 @@ const RecommendationsPage = () => {
           
           {profile && (
             <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 mb-10 flex flex-wrap gap-4 items-center justify-center md:justify-start">
-              <div className="flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-xl">
-                <span className="text-slate-400 font-medium">Mục tiêu:</span>
+              <div className="flex items-center gap-2 bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-100">
+                <span className="text-slate-500 font-bold text-sm uppercase tracking-wider">Mục tiêu:</span>
                 <span className="font-bold text-slate-800">{profile.healthGoal}</span>
               </div>
-              <div className="flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-xl">
-                <span className="text-slate-400 font-medium">BMI:</span>
-                <span className="font-bold text-slate-800">{profile.bmi > 0 ? profile.bmi : '--'}</span>
+              <div className="flex items-center gap-2 bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-100">
+                <span className="text-slate-500 font-bold text-sm uppercase tracking-wider">BMI:</span>
+                <span className={`font-bold ${profile.bmi >= 25 ? 'text-rose-600' : profile.bmi < 18.5 ? 'text-amber-500' : 'text-slate-800'}`}>
+                  {profile.bmi > 0 ? profile.bmi : '--'}
+                </span>
               </div>
               {profile.budgetPreference > 0 && (
-                <div className="flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-xl">
-                  <span className="text-slate-400 font-medium">Ngân sách:</span>
+                <div className="flex items-center gap-2 bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-100">
+                  <span className="text-slate-500 font-bold text-sm uppercase tracking-wider">Ngân sách:</span>
                   <span className="font-bold text-slate-800">{profile.budgetPreference.toLocaleString('vi-VN')} ₫/ngày</span>
                 </div>
               )}
               {profile.interests && profile.interests.length > 0 && (
-                <div className="flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-xl">
-                  <span className="text-slate-400 font-medium">Sở thích:</span>
+                <div className="flex items-center gap-2 bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-100">
+                  <span className="text-slate-500 font-bold text-sm uppercase tracking-wider">Sở thích:</span>
                   <span className="font-bold text-green-600">{profile.interests.join(', ')}</span>
                 </div>
               )}
-              <Link to="/profile" className="ml-auto text-sm text-green-600 hover:underline font-bold bg-green-50 px-4 py-2 rounded-xl transition-colors">
+              <Link to="/profile" className="ml-auto text-sm text-green-600 hover:underline font-bold bg-green-50 px-4 py-2.5 rounded-xl transition-colors shadow-sm">
                 Chỉnh sửa hồ sơ
               </Link>
             </div>
@@ -218,8 +255,7 @@ const RecommendationsPage = () => {
               ))}
             </div>
           ) : recommendedMeals.length === 0 ? (
-            <div className="text-center py-20">
-              {/* 🎯 Tiêu đề thông báo cập nhật text-2xl font-bold */}
+            <div className="text-center py-20 bg-white rounded-[2rem] border border-slate-100 shadow-sm">
               <h3 className="text-2xl font-bold text-slate-700">Chưa tìm thấy món ăn phù hợp. Hãy cập nhật lại hồ sơ nhé!</h3>
             </div>
           ) : (
@@ -230,10 +266,13 @@ const RecommendationsPage = () => {
                   to={`/meal/${meal._id}`}
                   className="bg-white rounded-[2rem] shadow-sm border border-slate-100 hover:shadow-xl hover:shadow-green-500/10 hover:-translate-y-1 transition-all duration-300 group overflow-hidden flex flex-col relative block"
                 >
-                  {/* Badge Báo cáo Lý do đề xuất */}
+                  {/* Badge Báo cáo Lý do đề xuất (Cá nhân hóa) - GIỮ NGUYÊN KIỂU TICK XANH CŨ */}
                   <div className="absolute z-10 top-4 right-4 flex flex-col gap-1.5 items-end">
                     {meal.matchReasons?.map((reason, i) => (
-                      <span key={i} className={`backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-sm ${reason === 'Món yêu thích của bạn' ? 'bg-rose-500/90' : 'bg-green-500/90'}`}>
+                      <span 
+                        key={i} 
+                        className={`backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-sm ${reason === 'Món yêu thích của bạn' ? 'bg-rose-500/90' : 'bg-green-500/90'}`}
+                      >
                         {reason === 'Món yêu thích của bạn' ? '❤️' : '✓'} {reason}
                       </span>
                     ))}

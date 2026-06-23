@@ -14,7 +14,6 @@ const MealPlanPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // 1. Lấy trạng thái món đã ăn từ LocalStorage để giữ nút bấm khi F5
   const [loggedMeals, setLoggedMeals] = useState(() => {
     const saved = localStorage.getItem('nutrifood_logged_meals');
     return saved ? JSON.parse(saved) : [];
@@ -55,7 +54,6 @@ const MealPlanPage = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      // Xóa bộ nhớ đệm trạng thái nút bấm của tuần cũ
       localStorage.removeItem('nutrifood_logged_meals');
       setLoggedMeals([]); 
 
@@ -69,37 +67,33 @@ const MealPlanPage = () => {
     }
   };
 
-  // 🎯 HÀM GHI NHẬN 1 CHẠM (ĐÃ FIX LỖI THỜI GIAN)
+  // 🎯 HÀM GHI NHẬN 1 CHẠM (ĐÃ MỞ KHÓA TƯƠNG LAI VÀ CHUẨN HÓA GIỜ)
   const handleOneTouchLog = async (mealObj, mealType, planDate) => {
     try {
-      const today = new Date();
-      today.setHours(23, 59, 59, 999);
-      
-      // Lấy NGÀY từ lộ trình 
+      // 1. Lấy ngày thực tế từ lộ trình
       const mealDate = new Date(planDate); 
       
-      // Lấy GIỜ PHÚT GIÂY thực tế
-      const now = new Date();
+      // 2. Set khung giờ logic cho từng bữa thay vì lấy giờ hiện tại
+      let defaultHour = 8; // Mặc định bữa sáng
+      const typeLower = mealType?.toLowerCase();
       
-      // Ghép chúng lại để ra thời gian tuyệt đối chính xác
-      mealDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
+      if (typeLower === 'bữa trưa') defaultHour = 12;
+      else if (typeLower === 'bữa tối') defaultHour = 19;
+      else if (typeLower === 'bữa phụ') defaultHour = 15;
       
-      // Chặn người dùng ghi nhận món ăn của tương lai
-      if (mealDate > today) {
-        toast.warning("Chưa đến ngày này! Hệ thống không ghi nhận thực đơn của tương lai.");
-        return;
-      }
+      mealDate.setHours(defaultHour, 0, 0, 0);
 
       const token = localStorage.getItem('nutrifood_token');
       const mealDetails = mealObj.mealId; 
       
+      // Tạo Payload, lưu ý phần Notes để CronJob nhận diện
       const payload = {
         mealId: mealDetails?._id,
         foodName: mealDetails?.name || "Món ăn chưa xác định",
         mealType: mealType,
         servingsConsumed: mealDetails?.servings || 1,
         consumedAt: mealDate.toISOString(), 
-        notes: "Ghi nhận 1 chạm từ Lộ trình AI",
+        notes: "Dự kiến ăn (Từ Lộ trình AI)", 
         nutritionSnapshot: {
           calories: mealDetails?.totalNutrition?.calories || 0,
           protein: mealDetails?.totalNutrition?.protein || 0,
@@ -112,13 +106,21 @@ const MealPlanPage = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      // Cập nhật mảng LocalStorage
+      // Cập nhật LocalStorage
       const uniqueMealKey = `${planDate}-${mealType}`;
       const newLoggedMeals = [...loggedMeals, uniqueMealKey];
       setLoggedMeals(newLoggedMeals);
       localStorage.setItem('nutrifood_logged_meals', JSON.stringify(newLoggedMeals));
 
-      toast.success(`Đã đánh dấu hoàn thành: ${mealDetails?.name || ""}`);
+      // Kiểm tra xem là dự kiến tương lai hay ăn hôm nay để hiện Toast phù hợp
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      if (mealDate > today) {
+         toast.success(`Đã lên lịch dự kiến cho: ${mealDetails?.name || ""}`);
+      } else {
+         toast.success(`Đã đánh dấu hoàn thành: ${mealDetails?.name || ""}`);
+      }
+      
     } catch (error) {
       if (error.response && error.response.data && !error.response.data.success) {
         toast.error(error.response.data.message);
@@ -147,7 +149,6 @@ const MealPlanPage = () => {
           
           <div className="mb-8 text-center md:text-left flex flex-col md:flex-row justify-between items-center gap-4">
             <div>
-              {/* 🎯 Tiêu đề chính cập nhật thành text-3xl font-bold */}
               <h1 className="text-3xl font-bold text-slate-900 mb-2">Lộ Trình Tuần Dinh Dưỡng</h1>
               <p className="text-slate-500 font-medium">Hệ thống AI phân tích TDEE và đề xuất cấu trúc bữa ăn trọn vẹn 7 ngày.</p>
             </div>
@@ -185,7 +186,6 @@ const MealPlanPage = () => {
               <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-6 shadow-sm border border-green-100">
                 <span className="text-4xl">🤖</span>
               </div>
-              {/* 🎯 Tiêu đề phụ text-2xl font-bold */}
               <h2 className="text-2xl font-bold text-green-800 mb-2">Chưa có lộ trình tuần này</h2>
               <p className="text-slate-600 font-medium text-sm max-w-sm mb-6 leading-relaxed">
                 Hãy nhấn nút "Khởi tạo" ở góc trên để Generative AI bắt đầu thiết kế thực đơn chuẩn khoa học cho riêng bạn.
@@ -217,43 +217,46 @@ const MealPlanPage = () => {
                     </div>
                     
                     <div className="p-4 space-y-4 flex-grow">
-                      {day.meals?.map((mealObj, mIdx) => {
-                        const mealInfo = mealObj.mealId; 
-                        
-                        const uniqueMealKey = `${day.date}-${mealObj.mealType}`;
-                        const isLogged = loggedMeals.includes(uniqueMealKey);
+                      {/* 🎯 LỌC BỎ CÁC MÓN BỊ ẨN BỞI ADMIN TRƯỚC KHI RENDER */}
+                      {day.meals
+                        ?.filter(mealObj => mealObj.mealId && mealObj.mealId.isActive !== false)
+                        .map((mealObj, mIdx) => {
+                          const mealInfo = mealObj.mealId; 
+                          
+                          const uniqueMealKey = `${day.date}-${mealObj.mealType}`;
+                          const isLogged = loggedMeals.includes(uniqueMealKey);
 
-                        return (
-                          <div key={mIdx} className="flex items-center justify-between group border-b border-slate-50 pb-4 last:border-0 last:pb-0">
-                            <div>
-                              <div className="mb-1">
-                                {renderMealTypeBadge(mealObj.mealType)}
+                          return (
+                            <div key={mIdx} className="flex items-center justify-between group border-b border-slate-50 pb-4 last:border-0 last:pb-0">
+                              <div>
+                                <div className="mb-1">
+                                  {renderMealTypeBadge(mealObj.mealType)}
+                                </div>
+                                <p className="font-bold text-slate-900 text-sm">{mealInfo?.name || "Món ăn bị lỗi"}</p>
+                                <p className="text-xs font-medium text-slate-500 mt-1">
+                                  {mealInfo?.totalNutrition?.calories || 0} kcal
+                                </p>
                               </div>
-                              <p className="font-bold text-slate-900 text-sm">{mealInfo?.name || "Món ăn bị lỗi"}</p>
-                              <p className="text-xs font-medium text-slate-500 mt-1">
-                                {mealInfo?.totalNutrition?.calories || 0} kcal
-                              </p>
+                              
+                              <button 
+                                onClick={() => handleOneTouchLog(mealObj, mealObj.mealType, day.date)}
+                                disabled={isLogged}
+                                className={`p-2.5 rounded-xl transition-colors shrink-0 flex items-center justify-center
+                                  ${isLogged 
+                                    ? 'bg-green-100 text-green-600 cursor-not-allowed' 
+                                    : 'bg-slate-50 text-slate-400 hover:bg-green-600 hover:text-white border border-slate-100 hover:border-green-600' 
+                                  }
+                                `}
+                                title={isLogged ? "Đã lên lịch/Ghi nhận" : "Lên lịch/Ghi nhận vào nhật ký"}
+                              >
+                                {isLogged ? (
+                                  <span className="text-xs font-bold">✓ Đã lưu</span>
+                                ) : (
+                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                )}
+                              </button>
                             </div>
-                            
-                            <button 
-                              onClick={() => handleOneTouchLog(mealObj, mealObj.mealType, day.date)}
-                              disabled={isLogged}
-                              className={`p-2.5 rounded-xl transition-colors shrink-0 flex items-center justify-center
-                                ${isLogged 
-                                  ? 'bg-green-100 text-green-600 cursor-not-allowed' 
-                                  : 'bg-slate-50 text-slate-400 hover:bg-green-600 hover:text-white border border-slate-100 hover:border-green-600' 
-                                }
-                              `}
-                              title={isLogged ? "Đã ghi nhận" : "Ghi nhận vào nhật ký"}
-                            >
-                              {isLogged ? (
-                                <span className="text-xs font-bold">✓ Đã ăn</span>
-                              ) : (
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path></svg>
-                              )}
-                            </button>
-                          </div>
-                        );
+                          );
                       })}
                     </div>
                   </div>
