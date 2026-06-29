@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import axios from '@/lib/axios';
+import api from '@/lib/axios';
 import { toast } from 'sonner';
 
 // Nhập Header và Footer
