@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom'; 
 import { useAuthStore } from '../../stores/useAuthStores'; 
-import axios from 'axios'; 
+import api from '@/lib/axios'; 
 import NotificationBell from '../NotificationBell'; // 🎯 MỚI THÊM: Import cái chuông thông báo
 
 const Header = () => {
@@ -19,7 +19,7 @@ const Header = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await axios.get('http://localhost:5001/api/categories');
+        const res = await api.get('/categories');
         if (res.data) {
           const activeCategories = res.data.filter(cat => cat.isActive !== false);
           setCategories(activeCategories);
