@@ -30,6 +30,8 @@ import notificationRoute from './routes/notificationRouters.js';
 import { startCronJobs } from './utils/cronJobs.js'; 
 
 const PORT = process.env.PORT || 5001;
+const _dirname = path.resolve();
+
 const app = express();
 
 // ==========================================
@@ -37,12 +39,15 @@ const app = express();
 // ==========================================
 
 // Cấu hình CORS (Mở cửa kết nối an toàn cho Frontend React Vite)
-app.use(cors({
+if(process.env.NODE_ENV !== "production"){
+   app.use(cors({
     origin: "http://localhost:5173", 
     credentials: true,               // BẮT BUỘC: Cho phép Frontend gửi kèm Token/Cookie sang
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
+}
+
 
 // Ép kiểu dữ liệu request body sang JSON (Giới hạn dung lượng bảo vệ server)
 app.use(express.json({ limit: "10mb" }));
@@ -53,7 +58,6 @@ app.use(cookieParser());
 // Cấp quyền truy cập công khai cho thư mục chứa ảnh upload
 // Đảm bảo Frontend gọi http://localhost:5001/uploads/... sẽ tải được ảnh
 app.use('/uploads', express.static(path.join(process.cwd(), 'src', 'uploads')));
-
 
 // ==========================================
 // 2. ĐỊNH TUYẾN CÁC API (ROUTES)
@@ -92,6 +96,13 @@ app.use((err, req, res, next) => {
         error: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
 });
+
+if(process.env.NODE_ENV === "production"){
+    app.use(express.static(path.join(_dirname, "../frontend/dist")));
+app.get ("*", (req, res) => {
+    res.sendFile(path.join(_dirname, "../frontend/dist/index.html" ));
+});
+}
 
 // ==========================================
 // 4. KHỞI CHẠY HỆ THỐNG CƠ SỞ DỮ LIỆU & SERVER

@@ -1,9 +1,10 @@
 import axios from "axios";
 
+const BASE_URL = import.meta.env.MODE === 'development' ? "http://localhost:5001/api" : "/api"
+
 // Tạo instance của axios
 const api = axios.create({
-    baseURL: import.meta.env.MODE === 'development' ? "http://localhost:5001/api" : "/api",
-    withCredentials: true,
+    baseURL: BASE_URL,
 });
 
 // 🎯 BỔ SUNG: Axios Interceptor - Tự động đính kèm Token vào Header
