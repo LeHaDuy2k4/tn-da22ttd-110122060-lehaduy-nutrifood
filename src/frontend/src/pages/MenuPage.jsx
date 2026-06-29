@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import axios from 'axios';
+import axios from '@/lib/axios';
 import { toast } from 'sonner';
 
 // Nhập Header và Footer
 import Header from '@/components/layouts/Header'; 
 import Footer from '@/components/layouts/Footer';
+import api from '@/lib/axios';
 
 const MenuPage = () => {
   // --- ĐỌC DỮ LIỆU TỪ URL ---
@@ -35,8 +36,8 @@ const MenuPage = () => {
       try {
         setIsLoading(true);
         const [catRes, mealRes] = await Promise.allSettled([
-          axios.get('http://localhost:5001/api/categories'),
-          axios.get('http://localhost:5001/api/meals')
+          api.get('/categories'),
+          api.get('/meals')
         ]);
 
         if (catRes.status === 'fulfilled' && catRes.value.data) {
