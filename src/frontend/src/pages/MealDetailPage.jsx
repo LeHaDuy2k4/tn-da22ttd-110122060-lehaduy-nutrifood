@@ -7,10 +7,6 @@ import { useAuthStore } from "@/stores/useAuthStores";
 import Header from '@/components/layouts/Header';
 import Footer from '@/components/layouts/Footer';
 
-// 🎯 1. KHỞI TẠO BIẾN SERVER URL ĐỂ XỬ LÝ ẢNH CŨ
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
-const BASE_SERVER_URL = API_URL.replace('/api', '');
-
 const MealDetailPage = () => {
   const { id } = useParams(); 
   const navigate = useNavigate();
@@ -29,19 +25,6 @@ const MealDetailPage = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 🎯 2. HÀM XỬ LÝ ẢNH THÔNG MINH
-  const getImageUrl = (imageString) => {
-    if (!imageString) return 'https://via.placeholder.com/800x600?text=NutriFood';
-    
-    // Nếu là Base64 hoặc link web ngoài -> Giữ nguyên
-    if (imageString.startsWith('data:image') || imageString.startsWith('http') || imageString.startsWith('blob:')) {
-      return imageString;
-    }
-    
-    // Nếu là ảnh vật lý cũ -> Nối với đường dẫn server
-    return `${BASE_SERVER_URL}${imageString.startsWith('/') ? '' : '/'}${imageString}`;
-  };
-
   // 1. LẤY DỮ LIỆU MÓN ĂN VÀ TRẠNG THÁI YÊU THÍCH
   useEffect(() => {
     const fetchMealDetails = async () => {
@@ -51,8 +34,10 @@ const MealDetailPage = () => {
         setMeal(mealRes.data);
 
         if (user) {
-          // 🎯 Token đã được đính kèm tự động qua Axios Interceptor
-          const favRes = await api.get(`/favorites/check/${id}`);
+          const token = localStorage.getItem('nutrifood_token');
+          const favRes = await api.get(`/favorites/check/${id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
           setIsFavorited(favRes.data.isFavorited);
         }
       } catch (error) {
@@ -76,8 +61,12 @@ const MealDetailPage = () => {
     }
 
     try {
-      // 🎯 Token đã được đính kèm tự động qua Axios Interceptor
-      const res = await api.post('/favorites/toggle', { mealId: meal._id });
+      const token = localStorage.getItem('nutrifood_token');
+      const res = await api.post(
+        '/favorites/toggle',
+        { mealId: meal._id },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       
       setIsFavorited(res.data.isFavorited);
       if (res.data.isFavorited) {
@@ -102,6 +91,7 @@ const MealDetailPage = () => {
 
     try {
       setIsSubmitting(true);
+      const token = localStorage.getItem('nutrifood_token');
       
       const servingsRatio = Number(logData.servingsConsumed) / (meal?.servings || 1);
       
@@ -121,8 +111,9 @@ const MealDetailPage = () => {
         }
       };
 
-      // 🎯 Token đã được đính kèm tự động qua Axios Interceptor
-      await api.post('/meal-logs', payload);
+      await api.post('/meal-logs', payload, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
       toast.success(`Đã thêm ${meal?.name} vào nhật ký hôm nay! 🥗`);
       setIsLogModalOpen(false);
@@ -142,7 +133,7 @@ const MealDetailPage = () => {
 
   if (isLoading) {
     return (
-      <div className="font-sans text-slate-800 selection:bg-green-200 min-h-screen flex flex-col bg-slate-50">
+      <div className="min-h-screen flex flex-col bg-slate-50 font-sans">
         <Header />
         <div className="flex-grow flex items-center justify-center pt-20">
           <div className="flex flex-col items-center space-y-4">
@@ -160,7 +151,7 @@ const MealDetailPage = () => {
      <div className="font-sans text-slate-800 selection:bg-green-200 min-h-screen flex flex-col">
       <Header />
 
-      <main className="flex-grow pt-24 pb-20 bg-slate-50">
+      <main className="flex-grow pt-24 pb-20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Breadcrumb */}
@@ -176,9 +167,8 @@ const MealDetailPage = () => {
               {/* --- CỘT TRÁI: HÌNH ẢNH & THÔNG SỐ NHANH --- */}
               <div className="relative">
                 <div className="h-[400px] lg:h-full min-h-[500px] relative">
-                  {/* 🎯 Tích hợp hàm getImageUrl vào đây */}
                   <img 
-                    src={getImageUrl(meal.imageUrl)} 
+                    src={meal.imageUrl || 'https://via.placeholder.com/800x600?text=NutriFood'} 
                     alt={meal.name}
                     className="absolute inset-0 w-full h-full object-cover"
                   />
@@ -208,6 +198,7 @@ const MealDetailPage = () => {
                 
                 {/* Tiêu đề & Thông tin cơ bản */}
                 <div className="mb-8">
+                  {/* 🎯 Tiêu đề món ăn */}
                   <h1 className="text-2xl font-bold text-slate-900 leading-tight mb-4">{meal.name}</h1>
                   <p className="text-slate-500 font-medium leading-relaxed mb-6">
                     {meal.description || "Một bữa ăn thơm ngon, đầy đủ dưỡng chất giúp bạn duy trì năng lượng cho một ngày làm việc hiệu quả."}
@@ -228,6 +219,7 @@ const MealDetailPage = () => {
                 {/* Bảng Dinh dưỡng (Macronutrients) */}
                 {meal.totalNutrition && (
                   <div className="mb-8">
+                    {/* 🎯 Tiêu đề bảng dinh dưỡng */}
                     <h2 className="text-2xl font-bold text-slate-900 mb-4 flex items-center gap-2">
                       <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                       Thành phần dinh dưỡng (1 phần)
@@ -273,6 +265,7 @@ const MealDetailPage = () => {
             
             {/* Cột Trái: Nguyên liệu */}
             <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-100 h-fit">
+              {/* 🎯 Tiêu đề */}
               <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-2">
                 <span className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">🥬</span>
                 Nguyên liệu
@@ -294,6 +287,7 @@ const MealDetailPage = () => {
 
             {/* Cột Phải: Hướng dẫn cách làm (Chiếm 2/3) */}
             <div className="lg:col-span-2 bg-white rounded-[2rem] p-8 shadow-sm border border-slate-100">
+              {/* 🎯 Tiêu đề */}
               <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-2">
                 <span className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">🍳</span>
                 Hướng dẫn thực hiện
@@ -329,6 +323,7 @@ const MealDetailPage = () => {
           <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden animate-slideUp">
             
             <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+              {/* 🎯 Tiêu đề Modal */}
               <h2 className="text-2xl font-bold text-slate-900">Ghi nhật ký ăn uống</h2>
               <button onClick={() => setIsLogModalOpen(false)} className="text-slate-400 hover:text-slate-700 bg-white p-2 rounded-xl shadow-sm hover:bg-slate-100 transition-all">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
